@@ -8,6 +8,7 @@ namespace greeny\MailLibrary\Structures;
 use greeny\MailLibrary\Attachment;
 use greeny\MailLibrary\Drivers\ImapDriver;
 use greeny\MailLibrary\Mailbox;
+use greeny\MailLibrary\MimePart;
 
 class ImapStructure implements IStructure {
 	const TYPE_TEXT = 0;
@@ -37,6 +38,8 @@ class ImapStructure implements IStructure {
 		self::TYPE_OTHER => 'other',
 	);
 
+	private $messageParts = [];
+
 	/** @var \greeny\MailLibrary\Drivers\ImapDriver */
 	protected $driver;
 
@@ -64,6 +67,9 @@ class ImapStructure implements IStructure {
 	/** @var Mailbox */
 	protected $mailbox;
 
+	/** @var array */
+	private $rawStructure = [];
+
 	/**
 	 * @param ImapDriver $driver
 	 * @param object     $structure
@@ -72,6 +78,7 @@ class ImapStructure implements IStructure {
 	 */
 	public function __construct(ImapDriver $driver, $structure, $mailId, Mailbox $mailbox)
 	{
+		$this->rawStructure = $structure;
 		$this->driver = $driver;
 		$this->id = $mailId;
 		$this->mailbox = $mailbox;
@@ -82,6 +89,14 @@ class ImapStructure implements IStructure {
 				$this->addStructurePart($part, (string) ($id + 1));
 			}
 		}
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getRawStructure()
+	{
+		return $this->rawStructure;
 	}
 
 	/**
@@ -133,6 +148,13 @@ class ImapStructure implements IStructure {
 		return $this->attachments;
 	}
 
+	/** @return MimePart[] */
+	public function getParts(): array
+	{
+		$this->driver->switchMailbox($this->mailbox->getName());
+		return $this->messageParts;
+	}
+
 	protected function addStructurePart($structure, $partId)
 	{
 		$type = $structure->type;
@@ -151,6 +173,16 @@ class ImapStructure implements IStructure {
 			}
 		}
 
+		$this->messageParts[] = new MimePart(
+			$this->driver,
+			$this->id,
+			$partId,
+			self::$typeTable[$type]. '/' . $subtype,
+			$parameters['filename'] ?? $parameters['name'] ?? '',
+			$encoding
+		);
+
+
 		if(isset($parameters['filename']) || isset($parameters['name'])) {
 			$this->attachmentsIds[] = array(
 				'id' => $partId,
@@ -158,6 +190,7 @@ class ImapStructure implements IStructure {
 				'name' => isset($parameters['filename']) ? $parameters['filename'] : $parameters['name'],
 				'type' => self::$typeTable[$type]. '/' . $subtype,
 			);
+
 		} else if($type === self::TYPE_TEXT) {
 			if($subtype === 'HTML') {
 				$this->htmlBodyIds[] = array('id' => $partId, 'encoding' => $encoding);

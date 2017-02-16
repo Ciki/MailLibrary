@@ -6,6 +6,7 @@
 namespace greeny\MailLibrary\Structures;
 
 use greeny\MailLibrary\Attachment;
+use greeny\MailLibrary\MimePart;
 
 interface IStructure {
 	/**
@@ -27,4 +28,7 @@ interface IStructure {
 	 * @return Attachment[]
 	 */
 	function getAttachments();
+
+	/** @return MimePart[] */
+	public function getParts(): array;
 }

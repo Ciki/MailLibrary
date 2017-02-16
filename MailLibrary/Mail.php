@@ -251,6 +251,12 @@ class Mail {
 		$this->structure = $this->connection->getDriver()->getStructure($this->id, $this->mailbox);
 	}
 
+	/** @internal */
+	public function getStructure(): IStructure {
+		$this->structure !== NULL || $this->initializeStructure();
+		return $this->structure;
+	}
+
 	protected function initializeFlags()
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
