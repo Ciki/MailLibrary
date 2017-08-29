@@ -8,7 +8,8 @@ namespace greeny\MailLibrary;
 use greeny\MailLibrary\Structures\IStructure;
 use Nette\Utils\Strings;
 
-class Mail {
+class Mail
+{
 	const ANSWERED = 'ANSWERED';
 	const BCC = 'BCC';
 	const BEFORE = 'BEFORE';
@@ -42,6 +43,7 @@ class Mail {
 	const ORDER_CC = SORTCC;
 	const ORDER_SIZE = SORTSIZE;
 
+
 	/** @var Connection */
 	protected $connection;
 
@@ -60,6 +62,7 @@ class Mail {
 	/** @var array */
 	protected $flags = NULL;
 
+
 	/**
 	 * @param Connection $connection
 	 * @param Mailbox    $mailbox
@@ -71,6 +74,7 @@ class Mail {
 		$this->mailbox = $mailbox;
 		$this->id = $id;
 	}
+
 
 	/**
 	 * Header checker
@@ -85,6 +89,7 @@ class Mail {
 		return isset($this->headers[$key]);
 	}
 
+
 	/**
 	 * Header getter
 	 *
@@ -94,9 +99,10 @@ class Mail {
 	public function __get($name)
 	{
 		return $this->getHeader(
-			$this->normalizeHeaderName($this->lowerCamelCaseToHeaderName($name))
+				$this->normalizeHeaderName($this->lowerCamelCaseToHeaderName($name))
 		);
 	}
+
 
 	/**
 	 * @return int
@@ -106,6 +112,7 @@ class Mail {
 		return $this->id;
 	}
 
+
 	/**
 	 * @return Mailbox
 	 */
@@ -113,6 +120,7 @@ class Mail {
 	{
 		return $this->mailbox;
 	}
+
 
 	/**
 	 * @return string[]
@@ -123,6 +131,7 @@ class Mail {
 		return $this->headers;
 	}
 
+
 	/**
 	 * @param string $name
 	 * @return string
@@ -131,25 +140,54 @@ class Mail {
 	{
 		$this->headers !== NULL || $this->initializeHeaders();
 		$index = $this->normalizeHeaderName($name);
-		if(isset($this->headers[$index])) {
+		if (isset($this->headers[$index])) {
 			return $this->headers[$index];
 		} else {
 			return NULL;
 		}
 	}
 
+
 	/**
 	 * @return Contact|null
 	 */
-	public function getSender() {
+	public function getSender()
+	{
+		/* @var $from ContactList */
 		$from = $this->getHeader('from');
-		if($from) {
+		if ($from) {
 			$contacts = $from->getContactsObjects();
 			return (count($contacts) ? $contacts[0] : NULL);
 		} else {
 			return NULL;
 		}
 	}
+
+
+	/**
+	 * @return Contact[]|null
+	 */
+	public function getRecipients()
+	{
+		/** @var ContactList $to */
+		$to = $this->getHeader('to');
+		if ($to) {
+			$contacts = $to->getContactsObjects();
+			return (count($contacts) ? $contacts : NULL);
+		} else {
+			return NULL;
+		}
+	}
+
+
+	/**
+	 * @return string
+	 */
+	public function getSubject()
+	{
+		return $this->getHeader('subject');
+	}
+
 
 	/**
 	 * @return string
@@ -160,6 +198,7 @@ class Mail {
 		return $this->structure->getBody();
 	}
 
+
 	/**
 	 * @return string
 	 */
@@ -168,6 +207,7 @@ class Mail {
 		$this->structure !== NULL || $this->initializeStructure();
 		return $this->structure->getHtmlBody();
 	}
+
 
 	/**
 	 * @return string
@@ -178,6 +218,7 @@ class Mail {
 		return $this->structure->getTextBody();
 	}
 
+
 	/**
 	 * @return Attachment[]
 	 */
@@ -186,6 +227,7 @@ class Mail {
 		$this->structure !== NULL || $this->initializeStructure();
 		return $this->structure->getAttachments();
 	}
+
 
 	/**
 	 * @return array
@@ -196,24 +238,26 @@ class Mail {
 		return $this->flags;
 	}
 
+
 	public function setFlags(array $flags, $autoFlush = FALSE)
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
-		foreach(array(
-			Mail::FLAG_ANSWERED,
-			Mail::FLAG_DELETED,
-			Mail::FLAG_DELETED,
-			Mail::FLAG_FLAGGED,
-			Mail::FLAG_SEEN,
+		foreach (array(
+		Mail::FLAG_ANSWERED,
+		Mail::FLAG_DELETED,
+		Mail::FLAG_DELETED,
+		Mail::FLAG_FLAGGED,
+		Mail::FLAG_SEEN,
 		) as $flag) {
-			if(isset($flags[$flag])) {
+			if (isset($flags[$flag])) {
 				$this->connection->getDriver()->setFlag($this->id, $flag, $flags[$flag]);
 			}
 		}
-		if($autoFlush) {
+		if ($autoFlush) {
 			$this->connection->getDriver()->flush();
 		}
 	}
+
 
 	public function move($toMailbox)
 	{
@@ -221,17 +265,20 @@ class Mail {
 		$this->connection->getDriver()->moveMail($this->id, $toMailbox);
 	}
 
+
 	public function copy($toMailbox)
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
 		$this->connection->getDriver()->copyMail($this->id, $toMailbox);
 	}
 
+
 	public function delete()
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
 		$this->connection->getDriver()->deleteMail($this->id);
 	}
+
 
 	/**
 	 * Initializes headers
@@ -240,22 +287,26 @@ class Mail {
 	{
 		$this->headers = array();
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
-		foreach($this->connection->getDriver()->getHeaders($this->id) as $key => $value) {
+		foreach ($this->connection->getDriver()->getHeaders($this->id) as $key => $value) {
 			$this->headers[$this->normalizeHeaderName($key)] = $value;
 		}
 	}
 
+
 	protected function initializeStructure()
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
-		$this->structure = $this->connection->getDriver()->getStructure($this->id, $this->mailbox);
+		$this->structure = $this->connection->getDriver()->getStructure($this->id,
+			$this->mailbox);
 	}
+
 
 	protected function initializeFlags()
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
 		$this->flags = $this->connection->getDriver()->getFlags($this->id);
 	}
+
 
 	/**
 	 * Formats header name (X-Received-From => x-recieved-from)
@@ -267,20 +318,25 @@ class Mail {
 	{
 		return Strings::normalize(Strings::lower($name));
 	}
-	
+
+
 	/**
 	 * Converts camel cased name to normalized header name (xReceivedFrom => x-recieved-from)
 	 *
 	 * @param string $camelCasedName
 	 * @return string name with dashes
 	 */
-	protected function lowerCamelCaseToHeaderName($camelCasedName) {
+	protected function lowerCamelCaseToHeaderName($camelCasedName)
+	{
 		// todo: test this
 		// todo: use something like this instead http://stackoverflow.com/a/1993772
-		$dashedName = lcfirst(preg_replace_callback("~-.~", function($matches){
-			return ucfirst(substr($matches[0], 1));
-		}, $camelCasedName));
-		
+		$dashedName = lcfirst(preg_replace_callback("~-.~",
+				function($matches) {
+				return ucfirst(substr($matches[0], 1));
+			}, $camelCasedName));
+
 		return $this->normalizeHeaderName($dashedName);
 	}
+
+
 }
