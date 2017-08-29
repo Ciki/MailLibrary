@@ -10,6 +10,7 @@ use greeny\MailLibrary\DriverException;
 use greeny\MailLibrary\Mailbox;
 use greeny\MailLibrary\Structures\IStructure;
 use greeny\MailLibrary\Structures\ImapStructure;
+use Nette\Utils\Strings;
 use greeny\MailLibrary\Mail;
 use DateTime;
 
@@ -227,18 +228,21 @@ class ImapDriver implements IDriver
 	public function getHeaders($mailId)
 	{
 		$raw = imap_fetchheader($this->resource, $mailId, FT_UID);
-		$lines = explode("\n", $raw);
+		$lines = explode("\n", Strings::fixEncoding($raw));
 		$headers = array();
 		$lastHeader = NULL;
+		
+		// normalize headers
 		foreach($lines as $line) {
-			if(mb_substr($line, 0, 1, 'UTF-8') === " ") {
-				$headers[$lastHeader] .= $line;
+			$firstCharacter = mb_substr($line, 0, 1, 'UTF-8'); // todo: correct assumption that string must be UTF-8 encoded?
+			if(preg_match('/[\pZ\pC]/u', $firstCharacter) === 1) { // search for UTF-8 whitespaces
+				$headers[$lastHeader] .= " " . Strings::trim($line);
 			} else {
 				$parts = explode(':', $line);
-				$name = $parts[0];
+				$name = Strings::trim($parts[0]);
 				unset($parts[0]);
 
-				$headers[$name] = implode(':', $parts);
+				$headers[$name] = Strings::trim(implode(':', $parts));
 				$lastHeader = $name;
 			}
 		}
@@ -254,7 +258,7 @@ class ImapDriver implements IDriver
 				$text = '';
 				foreach($decoded as $part) {
 					if($part->charset !== 'UTF-8' && $part->charset !== 'default') {
-						$text .= mb_convert_encoding($part->text, 'UTF-8', $part->charset);
+						$text .= @mb_convert_encoding($part->text, 'UTF-8', $part->charset); // todo: handle this more properly
 					} else {
 						$text .= $part->text;
 					}
@@ -297,22 +301,29 @@ class ImapDriver implements IDriver
 	 * Gets part of body
 	 *
 	 * @param int   $mailId
-	 * @param array $data
+	 * @param array $data requires id and encoding keys
 	 * @return string
+	 * @throws \greeny\MailLibrary\DriverException
 	 */
 	public function getBody($mailId, array $data)
 	{
 		$body = array();
 		foreach($data as $part) {
-			$data = ($part['id'] == 0) ? imap_body($this->resource, $mailId, FT_UID | FT_PEEK) : imap_fetchbody($this->resource, $mailId, $part['id'], FT_UID | FT_PEEK);
+			assert(is_array($part));
+			$dataMessage = ($part['id'] === 0) ? @imap_body($this->resource, $mailId, FT_UID | FT_PEEK) : @imap_fetchbody($this->resource, $mailId, $part['id'], FT_UID | FT_PEEK);
+			if($dataMessage === FALSE) {
+				throw new DriverException("Cannot read given message part - " . error_get_last()["message"]);
+			}
 			$encoding = $part['encoding'];
 			if($encoding === ImapStructure::ENCODING_BASE64) {
-				$data = base64_decode($data);
+				$dataMessage = base64_decode($dataMessage);
 			} else if($encoding === ImapStructure::ENCODING_QUOTED_PRINTABLE) {
-				$data = quoted_printable_decode($data);
+				$dataMessage = quoted_printable_decode($dataMessage);
 			}
 
-			$body[] = $data;
+			// todo: other encodings?
+
+			$body[] = $dataMessage;
 		}
 		return implode('\n\n', $body);
 	}
@@ -381,7 +392,7 @@ class ImapDriver implements IDriver
 	 * @throws DriverException
 	 */
 	public function copyMail($mailId, $toMailbox) {
-		if(!imap_mail_copy($this->resource, $mailId, $this->server . $this->encodeMailboxName($toMailbox), CP_UID)) {
+		if(!imap_mail_copy($this->resource, $mailId, /*$this->server .*/ $this->encodeMailboxName($toMailbox), CP_UID)) {
 			throw new DriverException("Cannot copy mail to mailbox '$toMailbox': ".imap_last_error());
 		}
 	}
@@ -393,7 +404,7 @@ class ImapDriver implements IDriver
 	 * @throws DriverException
 	 */
 	public function moveMail($mailId, $toMailbox) {
-		if(!imap_mail_move($this->resource, $mailId, $this->server . $this->encodeMailboxName($toMailbox), CP_UID)) {
+		if(!imap_mail_move($this->resource, $mailId, /*$this->server .*/ $this->encodeMailboxName($toMailbox), CP_UID)) {
 			throw new DriverException("Cannot copy mail to mailbox '$toMailbox': ".imap_last_error());
 		}
 	}
