@@ -17,7 +17,9 @@ class ImapStructure implements IStructure {
 	const TYPE_AUDIO = 4;
 	const TYPE_IMAGE = 5;
 	const TYPE_VIDEO = 6;
-	const TYPE_OTHER = 7;
+	const TYPE_MODEL = 7;
+	const TYPE_OTHER = 8;
+	const TYPE_UNKNOWN = 9;
 
 	const ENCODING_7BIT = 0;
 	const ENCODING_8BIT = 1;
@@ -34,7 +36,9 @@ class ImapStructure implements IStructure {
 		self::TYPE_AUDIO => 'audio',
 		self::TYPE_IMAGE => 'image',
 		self::TYPE_VIDEO => 'video',
+		self::TYPE_MODEL => 'other',
 		self::TYPE_OTHER => 'other',
+		self::TYPE_UNKNOWN => 'other',
 	);
 
 	/** @var \greeny\MailLibrary\Drivers\ImapDriver */
