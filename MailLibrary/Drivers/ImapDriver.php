@@ -29,9 +29,9 @@ class ImapDriver implements IDriver
 	protected $server;
 
 	/** @var string */
-	protected $currentMailbox = NULL;
-	
-	protected static $filterTable = array(
+	protected $currentMailbox = null;
+
+	protected static $filterTable = [
 		Mail::ANSWERED => '%bANSWERED',
 		Mail::BCC => 'BCC "%s"',
 		Mail::BEFORE => 'BEFORE "%d"',
@@ -51,16 +51,16 @@ class ImapDriver implements IDriver
 		Mail::SUBJECT => 'SUBJECT "%s"',
 		Mail::TEXT => 'TEXT "%s"',
 		Mail::TO => 'TO "%s"',
-	);
+	];
 
-	protected static $contactHeaders = array(
+	protected static $contactHeaders = [
 		'to',
 		'from',
 		'cc',
 		'bcc',
-	);
+	];
 
-	public function __construct($username, $password, $host, $port = 993, $ssl = TRUE)
+	public function __construct($username, $password, $host, $port = 993, $ssl = true)
 	{
 		$ssl = $ssl ? '/ssl' : '/novalidate-cert';
 		$this->server = '{'.$host.':'.$port.'/imap'.$ssl.'}';
@@ -98,7 +98,7 @@ class ImapDriver implements IDriver
 	 */
 	public function getMailboxes()
 	{
-		$mailboxes = array();
+		$mailboxes = [];
 		$foo = imap_list($this->resource, $this->server, '*');
 		if(!$foo) {
 			throw new DriverException("Cannot get mailboxes from server: " . imap_last_error());
@@ -197,24 +197,24 @@ class ImapDriver implements IDriver
 	 * @param mixed  $value
 	 * @throws DriverException
 	 */
-	public function checkFilter($key, $value = NULL) {
+	public function checkFilter($key, $value = null) {
 		if(!in_array($key, array_keys(self::$filterTable))) {
 			throw new DriverException("Invalid filter key '$key'.");
 		}
 		$filtered = self::$filterTable[$key];
-		if(strpos($filtered, '%s') !== FALSE) {
+		if(strpos($filtered, '%s') !== false) {
 			if(!is_string($value)) {
 				throw new DriverException("Invalid value type for filter '$key', expected string, got ".gettype($value).".");
 			}
-		} else if(strpos($filtered, '%d') !== FALSE) {
+		} else if(strpos($filtered, '%d') !== false) {
 			if(!($value instanceof DateTime) && !is_int($value) && !strtotime($value)) {
 				throw new DriverException("Invalid value type for filter '$key', expected DateTime or timestamp, or textual representation of date, got ".gettype($value).".");
 			}
-		} else if(strpos($filtered, '%b') !== FALSE) {
+		} else if(strpos($filtered, '%b') !== false) {
 			if(!is_bool($value)) {
 				throw new DriverException("Invalid value type for filter '$key', expected bool, got ".gettype($value).".");
 			}
-		} else if($value !== NULL) {
+		} else if($value !== null) {
 			throw new DriverException("Cannot assign value to filter '$key'.");
 		}
 	}
@@ -229,9 +229,9 @@ class ImapDriver implements IDriver
 	{
 		$raw = imap_fetchheader($this->resource, $mailId, FT_UID);
 		$lines = explode("\n", Strings::fixEncoding($raw));
-		$headers = array();
-		$lastHeader = NULL;
-		
+		$headers = [];
+		$lastHeader = null;
+
 		// normalize headers
 		foreach($lines as $line) {
 			$firstCharacter = mb_substr($line, 0, 1, 'UTF-8'); // todo: correct assumption that string must be UTF-8 encoded?
@@ -270,10 +270,10 @@ class ImapDriver implements IDriver
 				$list = new ContactList();
 				foreach($contacts as $contact) {
 					$list->addContact(
-						isset($contact->mailbox) ? $contact->mailbox : NULL,
-						isset($contact->host) ? $contact->host : NULL,
-						isset($contact->personal) ? $contact->personal : NULL,
-						isset($contact->adl) ? $contact->adl : NULL
+						isset($contact->mailbox) ? $contact->mailbox : null,
+						isset($contact->host) ? $contact->host : null,
+						isset($contact->personal) ? $contact->personal : null,
+						isset($contact->adl) ? $contact->adl : null
 					);
 				}
 				$list->build();
@@ -307,11 +307,11 @@ class ImapDriver implements IDriver
 	 */
 	public function getBody($mailId, array $data)
 	{
-		$body = array();
+		$body = [];
 		foreach($data as $part) {
 			assert(is_array($part));
 			$dataMessage = ($part['id'] === 0) ? @imap_body($this->resource, $mailId, FT_UID | FT_PEEK) : @imap_fetchbody($this->resource, $mailId, $part['id'], FT_UID | FT_PEEK);
-			if($dataMessage === FALSE) {
+			if($dataMessage === false) {
 				throw new DriverException("Cannot read given message part - " . error_get_last()["message"]);
 			}
 			$encoding = $part['encoding'];
@@ -339,27 +339,27 @@ class ImapDriver implements IDriver
 		$data = imap_fetch_overview($this->resource, (string)$mailId, FT_UID);
 		reset($data);
 		$data = current($data);
-		$return = array(
-			Mail::FLAG_ANSWERED => FALSE,
-			Mail::FLAG_DELETED => FALSE,
-			Mail::FLAG_DRAFT => FALSE,
-			Mail::FLAG_FLAGGED => FALSE,
-			Mail::FLAG_SEEN => FALSE,
-		);
+		$return = [
+			Mail::FLAG_ANSWERED => false,
+			Mail::FLAG_DELETED => false,
+			Mail::FLAG_DRAFT => false,
+			Mail::FLAG_FLAGGED => false,
+			Mail::FLAG_SEEN => false,
+		];
 		if($data->answered) {
-			$return[Mail::FLAG_ANSWERED] = TRUE;
+			$return[Mail::FLAG_ANSWERED] = true;
 		}
 		if($data->deleted) {
-			$return[Mail::FLAG_DELETED] = TRUE;
+			$return[Mail::FLAG_DELETED] = true;
 		}
 		if($data->draft) {
-			$return[Mail::FLAG_DRAFT] = TRUE;
+			$return[Mail::FLAG_DRAFT] = true;
 		}
 		if($data->flagged) {
-			$return[Mail::FLAG_FLAGGED] = TRUE;
+			$return[Mail::FLAG_FLAGGED] = true;
 		}
 		if($data->seen) {
-			$return[Mail::FLAG_SEEN] = TRUE;
+			$return[Mail::FLAG_SEEN] = true;
 		}
 		return $return;
 	}
@@ -428,14 +428,14 @@ class ImapDriver implements IDriver
 	 */
 	protected function buildFilters(array $filters)
 	{
-		$return = array();
+		$return = [];
 		foreach($filters as $filter) {
 			$key = self::$filterTable[$filter['key']];
 			$value = $filter['value'];
 
-			if(strpos($key, '%s') !== FALSE) {
+			if(strpos($key, '%s') !== false) {
 				$data = str_replace('%s', str_replace('"', '', (string)$value), $key);
-			} else if(strpos($key, '%d') !== FALSE) {
+			} else if(strpos($key, '%d') !== false) {
 				if($value instanceof DateTime) {
 					$timestamp = $value->getTimestamp();
 				} else if(is_string($value)) {
@@ -444,7 +444,7 @@ class ImapDriver implements IDriver
 					$timestamp = (int)$value;
 				}
 				$data = str_replace('%d', date("d M Y", $timestamp), $key);
-			} else if(strpos($key, '%b') !== FALSE) {
+			} else if(strpos($key, '%b') !== false) {
 				$data = str_replace('%b', ((bool)$value ? '' : 'UN'), $key);
 			} else {
 				$data = $key;

@@ -6,7 +6,7 @@
 require_once "exceptions.php";
 
 spl_autoload_register(function ($type) {
-	static $paths = array(
+	static $paths = [
 		'greeny\maillibrary\connection' => 'Connection.php',
 		'greeny\maillibrary\mailbox' => 'Mailbox.php',
 		'greeny\maillibrary\selection' => 'Selection.php',
@@ -19,7 +19,7 @@ spl_autoload_register(function ($type) {
 		'greeny\maillibrary\drivers\idriver' => 'Drivers/IDriver.php',
 		'greeny\maillibrary\drivers\imapdriver' => 'Drivers/ImapDriver.php',
 		'greeny\maillibrary\extensions\maillibraryextension' => 'Extensions/MailLibraryExtension.php',
-	);
+	];
 
 	$type = ltrim(strtolower($type), '\\'); // PHP namespace bug #49143
 

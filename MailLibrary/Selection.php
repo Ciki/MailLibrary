@@ -15,16 +15,16 @@ class Selection implements ArrayAccess, Countable, Iterator {
 	protected $mailbox;
 
 	/** @var array */
-	protected $mails = NULL;
+	protected $mails = null;
 
 	/** @var int */
-	protected $iterator = NULL;
+	protected $iterator = null;
 
 	/** @var array */
-	protected $mailIndexes = NULL;
+	protected $mailIndexes = null;
 
 	/** @var array */
-	protected $filters = array();
+	protected $filters = [];
 
 	/** @var int */
 	protected $limit = 0;
@@ -51,10 +51,10 @@ class Selection implements ArrayAccess, Countable, Iterator {
 	 * @param string $value
 	 * @return $this
 	 */
-	public function where($key, $value = NULL)
+	public function where($key, $value = null)
 	{
 		$this->connection->getDriver()->checkFilter($key, $value);
-		$this->filters[] = array('key' => $key, 'value' => $value);
+		$this->filters[] = ['key' => $key, 'value' => $value];
 		return $this;
 	}
 
@@ -118,7 +118,7 @@ class Selection implements ArrayAccess, Countable, Iterator {
 	public function order($by, $type = 'ASC')
 	{
 		$type = strtoupper($type);
-		if(!in_array($type, array('ASC', 'DESC'))) {
+		if(!in_array($type, ['ASC', 'DESC'])) {
 			throw new InvalidFilterValueException("Sort type must be ASC or DESC, '$type' given.");
 		}
 		$this->orderBy = $by;
@@ -133,7 +133,7 @@ class Selection implements ArrayAccess, Countable, Iterator {
 	 */
 	public function countMails()
 	{
-		$this->mails !== NULL || $this->fetchMails();
+		$this->mails !== null || $this->fetchMails();
 		return count($this->mails);
 	}
 
@@ -144,7 +144,7 @@ class Selection implements ArrayAccess, Countable, Iterator {
 	 */
 	public function fetchAll()
 	{
-		$this->mails !== NULL || $this->fetchMails();
+		$this->mails !== null || $this->fetchMails();
 		return $this->mails;
 	}
 
@@ -156,9 +156,9 @@ class Selection implements ArrayAccess, Countable, Iterator {
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
 		$ids = $this->connection->getDriver()->getMailIds($this->filters, $this->limit, $this->offset, $this->orderBy, $this->orderType);
 		$i = 0;
-		$this->mails = array();
+		$this->mails = [];
 		$this->iterator = 0;
-		$this->mailIndexes = array();
+		$this->mailIndexes = [];
 		foreach($ids as $id) {
 			$this->mails[$id] = new Mail($this->connection, $this->mailbox, $id);
 			$this->mailIndexes[$i++] = $id;
@@ -173,7 +173,7 @@ class Selection implements ArrayAccess, Countable, Iterator {
 	 */
 	public function offsetExists($offset)
 	{
-		$this->mails !== NULL || $this->fetchMails();
+		$this->mails !== null || $this->fetchMails();
 		return isset($this->mails[$offset]);
 	}
 
@@ -184,7 +184,7 @@ class Selection implements ArrayAccess, Countable, Iterator {
 	 */
 	public function offsetGet($offset)
 	{
-		$this->mails !== NULL || $this->fetchMails();
+		$this->mails !== null || $this->fetchMails();
 		if(isset($this->mails[$offset])) {
 			return $this->mails[$offset];
 		} else {
@@ -254,7 +254,7 @@ class Selection implements ArrayAccess, Countable, Iterator {
 
 	public function rewind()
 	{
-		$this->mails !== NULL || $this->fetchMails();
+		$this->mails !== null || $this->fetchMails();
 		$this->iterator = 0;
 	}
 }

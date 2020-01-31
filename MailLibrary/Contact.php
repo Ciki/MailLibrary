@@ -27,8 +27,8 @@ class Contact
 	 * @param $personal
 	 * @param $adl
 	 */
-	public function __construct($mailbox = NULL, $host = NULL, $personal = NULL,
-		$adl = NULL)
+	public function __construct($mailbox = null, $host = null, $personal = null,
+		$adl = null)
 	{
 		$this->mailbox = $mailbox;
 		$this->host = $host;

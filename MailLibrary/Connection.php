@@ -12,10 +12,10 @@ class Connection {
 	protected $driver;
 
 	/** @var bool */
-	protected $connected = FALSE;
+	protected $connected = false;
 
 	/** @var array */
-	protected $mailboxes = NULL;
+	protected $mailboxes = null;
 
 	/**
 	 * @param IDriver $driver
@@ -43,7 +43,7 @@ class Connection {
 		if(!$this->connected) {
 			try {
 				$this->driver->connect();
-				$this->connected = TRUE;
+				$this->connected = true;
 			} catch(DriverException $e) {
 				throw new ConnectionException("Cannot connect to server.", $e->getCode(), $e);
 			}
@@ -77,7 +77,7 @@ class Connection {
 	 */
 	public function getMailboxes()
 	{
-		$this->mailboxes !== NULL || $this->initializeMailboxes();
+		$this->mailboxes !== null || $this->initializeMailboxes();
 		return $this->mailboxes;
 	}
 
@@ -89,7 +89,7 @@ class Connection {
 	 */
 	public function getMailbox($name)
 	{
-		$this->mailboxes !== NULL || $this->initializeMailboxes();
+		$this->mailboxes !== null || $this->initializeMailboxes();
 		if(isset($this->mailboxes[$name])) {
 			return $this->mailboxes[$name];
 		} else {
@@ -107,7 +107,7 @@ class Connection {
 	{
 		$this->connected || $this->connect();
 		$this->driver->createMailbox($name);
-		$this->mailboxes = NULL;
+		$this->mailboxes = null;
 		return $this->getMailbox($name);
 	}
 
@@ -122,7 +122,7 @@ class Connection {
 	{
 		$this->connected || $this->connect();
 		$this->driver->renameMailbox($from, $to);
-		$this->mailboxes = NULL;
+		$this->mailboxes = null;
 		return $this->getMailbox($to);
 	}
 
@@ -135,7 +135,7 @@ class Connection {
 	{
 		$this->connected || $this->connect();
 		$this->driver->deleteMailbox($name);
-		$this->mailboxes = NULL;
+		$this->mailboxes = null;
 	}
 
 	/**
@@ -157,7 +157,7 @@ class Connection {
 	protected function initializeMailboxes()
 	{
 		$this->connected || $this->connect();
-		$this->mailboxes = array();
+		$this->mailboxes = [];
 		foreach($this->driver->getMailboxes() as $name) {
 			$this->mailboxes[$name] = new Mailbox($this, $name);
 		}

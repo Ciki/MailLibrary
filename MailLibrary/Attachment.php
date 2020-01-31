@@ -36,7 +36,7 @@ class Attachment {
 	 */
 	public function saveAs($filename)
 	{
-		return file_put_contents($filename, $this->content) !== FALSE;
+		return file_put_contents($filename, $this->content) !== false;
 	}
 
 	/**
@@ -55,4 +55,3 @@ class Attachment {
 		return $this->type;
 	}
 }
- 

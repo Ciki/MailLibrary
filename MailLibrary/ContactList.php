@@ -15,14 +15,14 @@ class ContactList implements Iterator, Countable
 
 	protected $builtContacts = [];
 
-	public function addContact($mailbox = NULL, $host = NULL, $personal = NULL, $adl = NULL)
+	public function addContact($mailbox = null, $host = null, $personal = null, $adl = null)
 	{
 		$this->contacts[] = new Contact($mailbox,$host,$personal,$adl);
 	}
 
 	public function build()
 	{
-		$return = array();
+		$return = [];
 		foreach($this->contacts as $contact) {
 			$return[] = $contact->__toString();
 		}
@@ -65,7 +65,7 @@ class ContactList implements Iterator, Countable
 	public function valid()
 	{
 		$key = key($this->builtContacts);
-		return ($key !== NULL && $key !== FALSE);
+		return ($key !== null && $key !== false);
 	}
 
 	public function rewind()

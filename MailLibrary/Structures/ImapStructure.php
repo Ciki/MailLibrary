@@ -28,7 +28,7 @@ class ImapStructure implements IStructure {
 	const ENCODING_QUOTED_PRINTABLE = 4;
 	const ENCODING_OTHER = 5;
 
-	protected static $typeTable = array(
+	protected static $typeTable = [
 		self::TYPE_TEXT => 'text',
 		self::TYPE_MULTIPART => 'multipart',
 		self::TYPE_MESSAGE => 'message',
@@ -39,7 +39,7 @@ class ImapStructure implements IStructure {
 		self::TYPE_MODEL => 'other',
 		self::TYPE_OTHER => 'other',
 		self::TYPE_UNKNOWN => 'other',
-	);
+	];
 
 	/** @var \greeny\MailLibrary\Drivers\ImapDriver */
 	protected $driver;
@@ -48,22 +48,22 @@ class ImapStructure implements IStructure {
 	protected $id;
 
 	/** @var array */
-	protected $htmlBodyIds = array();
+	protected $htmlBodyIds = [];
 
 	/** @var array */
-	protected $textBodyIds = array();
+	protected $textBodyIds = [];
 
 	/** @var array */
-	protected $attachmentsIds = array();
+	protected $attachmentsIds = [];
 
 	/** @var string */
-	protected $htmlBody = NULL;
+	protected $htmlBody = null;
 
 	/** @var string */
-	protected $textBody = NULL;
+	protected $textBody = null;
 
 	/** @var Attachment[] */
-	protected $attachments = NULL;
+	protected $attachments = null;
 
 	/** @var Mailbox */
 	protected $mailbox;
@@ -101,7 +101,7 @@ class ImapStructure implements IStructure {
 	 */
 	public function getHtmlBody()
 	{
-		if($this->htmlBody === NULL) {
+		if($this->htmlBody === null) {
 			$this->driver->switchMailbox($this->mailbox->getName());
 			return $this->htmlBody = $this->driver->getBody($this->id, $this->htmlBodyIds);
 		} else {
@@ -114,7 +114,7 @@ class ImapStructure implements IStructure {
 	 */
 	public function getTextBody()
 	{
-		if($this->textBody === NULL) {
+		if($this->textBody === null) {
 			$this->driver->switchMailbox($this->mailbox->getName());
 			return $this->textBody = $this->driver->getBody($this->id, $this->textBodyIds);
 		} else {
@@ -128,10 +128,10 @@ class ImapStructure implements IStructure {
 	public function getAttachments()
 	{
 		$this->driver->switchMailbox($this->mailbox->getName());
-		if($this->attachments === NULL) {
-			$this->attachments = array();
+		if($this->attachments === null) {
+			$this->attachments = [];
 			foreach($this->attachmentsIds as $attachmentData) {
-				$this->attachments[] = new Attachment($attachmentData['name'], $this->driver->getBody($this->id, array($attachmentData)), $attachmentData['type']);
+				$this->attachments[] = new Attachment($attachmentData['name'], $this->driver->getBody($this->id, [$attachmentData]), $attachmentData['type']);
 			}
 		}
 		return $this->attachments;
@@ -143,7 +143,7 @@ class ImapStructure implements IStructure {
 		$encoding = isset($structure->encoding) ? $structure->encoding : 'UTF-8';
 		$subtype = $structure->ifsubtype ? $structure->subtype : 'PLAIN';
 
-		$parameters = array();
+		$parameters = [];
 		if($structure->ifparameters) {
 			foreach($structure->parameters as $parameter) {
 				$parameters[strtolower($parameter->attribute)] = $parameter->value;
@@ -156,17 +156,17 @@ class ImapStructure implements IStructure {
 		}
 
 		if(isset($parameters['filename']) || isset($parameters['name'])) {
-			$this->attachmentsIds[] = array(
+			$this->attachmentsIds[] = [
 				'id' => $partId,
 				'encoding' => $encoding,
 				'name' => imap_utf8(isset($parameters['filename']) ? $parameters['filename'] : $parameters['name']),
 				'type' => self::$typeTable[$type]. '/' . $subtype,
-			);
+			];
 		} else if($type === self::TYPE_TEXT) {
 			if($subtype === 'HTML') {
-				$this->htmlBodyIds[] = array('id' => $partId, 'encoding' => $encoding);
+				$this->htmlBodyIds[] = ['id' => $partId, 'encoding' => $encoding];
 			} else if($subtype === 'PLAIN') {
-				$this->textBodyIds[] = array('id' => $partId, 'encoding' => $encoding);
+				$this->textBodyIds[] = ['id' => $partId, 'encoding' => $encoding];
 			}
 		}
 

@@ -54,13 +54,13 @@ class Mail
 	protected $id;
 
 	/** @var array */
-	protected $headers = NULL;
+	protected $headers = null;
 
 	/** @var IStructure */
-	protected $structure = NULL;
+	protected $structure = null;
 
 	/** @var array */
-	protected $flags = NULL;
+	protected $flags = null;
 
 
 	/**
@@ -84,7 +84,7 @@ class Mail
 	 */
 	public function __isset($name)
 	{
-		$this->headers !== NULL || $this->initializeHeaders();
+		$this->headers !== null || $this->initializeHeaders();
 		$key = $this->normalizeHeaderName($this->lowerCamelCaseToHeaderName($name));
 		return isset($this->headers[$key]);
 	}
@@ -127,7 +127,7 @@ class Mail
 	 */
 	public function getHeaders()
 	{
-		$this->headers !== NULL || $this->initializeHeaders();
+		$this->headers !== null || $this->initializeHeaders();
 		return $this->headers;
 	}
 
@@ -138,12 +138,12 @@ class Mail
 	 */
 	public function getHeader($name)
 	{
-		$this->headers !== NULL || $this->initializeHeaders();
+		$this->headers !== null || $this->initializeHeaders();
 		$index = $this->normalizeHeaderName($name);
 		if (isset($this->headers[$index])) {
 			return $this->headers[$index];
 		} else {
-			return NULL;
+			return null;
 		}
 	}
 
@@ -157,9 +157,9 @@ class Mail
 		$from = $this->getHeader('from');
 		if ($from) {
 			$contacts = $from->getContactsObjects();
-			return (count($contacts) ? $contacts[0] : NULL);
+			return (count($contacts) ? $contacts[0] : null);
 		} else {
-			return NULL;
+			return null;
 		}
 	}
 
@@ -173,9 +173,9 @@ class Mail
 		$to = $this->getHeader('to');
 		if ($to) {
 			$contacts = $to->getContactsObjects();
-			return (count($contacts) ? $contacts : NULL);
+			return (count($contacts) ? $contacts : null);
 		} else {
-			return NULL;
+			return null;
 		}
 	}
 
@@ -194,7 +194,7 @@ class Mail
 	 */
 	public function getBody()
 	{
-		$this->structure !== NULL || $this->initializeStructure();
+		$this->structure !== null || $this->initializeStructure();
 		return $this->structure->getBody();
 	}
 
@@ -204,7 +204,7 @@ class Mail
 	 */
 	public function getHtmlBody()
 	{
-		$this->structure !== NULL || $this->initializeStructure();
+		$this->structure !== null || $this->initializeStructure();
 		return $this->structure->getHtmlBody();
 	}
 
@@ -214,7 +214,7 @@ class Mail
 	 */
 	public function getTextBody()
 	{
-		$this->structure !== NULL || $this->initializeStructure();
+		$this->structure !== null || $this->initializeStructure();
 		return $this->structure->getTextBody();
 	}
 
@@ -224,7 +224,7 @@ class Mail
 	 */
 	public function getAttachments()
 	{
-		$this->structure !== NULL || $this->initializeStructure();
+		$this->structure !== null || $this->initializeStructure();
 		return $this->structure->getAttachments();
 	}
 
@@ -234,21 +234,21 @@ class Mail
 	 */
 	public function getFlags()
 	{
-		$this->flags !== NULL || $this->initializeFlags();
+		$this->flags !== null || $this->initializeFlags();
 		return $this->flags;
 	}
 
 
-	public function setFlags(array $flags, $autoFlush = FALSE)
+	public function setFlags(array $flags, $autoFlush = false)
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
-		foreach (array(
+		foreach ([
 		Mail::FLAG_ANSWERED,
 		Mail::FLAG_DELETED,
 		Mail::FLAG_DELETED,
 		Mail::FLAG_FLAGGED,
 		Mail::FLAG_SEEN,
-		) as $flag) {
+		] as $flag) {
 			if (isset($flags[$flag])) {
 				$this->connection->getDriver()->setFlag($this->id, $flag, $flags[$flag]);
 			}
@@ -285,7 +285,7 @@ class Mail
 	 */
 	protected function initializeHeaders()
 	{
-		$this->headers = array();
+		$this->headers = [];
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
 		foreach ($this->connection->getDriver()->getHeaders($this->id) as $key => $value) {
 			$this->headers[$this->normalizeHeaderName($key)] = $value;
