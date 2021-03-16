@@ -165,18 +165,20 @@ class Mail
 
 
 	/**
+	 * @param array $headers
 	 * @return Contact[]|null
 	 */
-	public function getRecipients()
+	public function getRecipients(array $headers = ['to'])
 	{
-		/** @var ContactList $to */
-		$to = $this->getHeader('to');
-		if ($to) {
-			$contacts = $to->getContactsObjects();
-			return (count($contacts) ? $contacts : null);
-		} else {
-			return null;
+		$ret = [];
+		foreach ($headers as $hName) {
+			/** @var ContactList $header */
+			$header = $this->getHeader($hName);
+			if ($header) {
+				$ret = array_merge($ret, $header->getContactsObjects());
+			}
 		}
+		return count($ret) ? $ret : null;
 	}
 
 
