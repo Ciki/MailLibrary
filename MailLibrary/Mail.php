@@ -44,31 +44,20 @@ class Mail
 	const ORDER_SIZE = SORTSIZE;
 
 
-	/** @var Connection */
-	protected $connection;
+	protected Connection $connection;
 
-	/** @var Mailbox */
-	protected $mailbox;
+	protected Mailbox $mailbox;
 
-	/** @var int */
-	protected $id;
+	protected int $id;
 
-	/** @var array */
-	protected $headers = null;
+	protected ?array $headers = null;
 
-	/** @var IStructure */
-	protected $structure = null;
+	protected ?IStructure $structure = null;
 
-	/** @var array */
-	protected $flags = null;
+	protected ?array $flags = null;
 
 
-	/**
-	 * @param Connection $connection
-	 * @param Mailbox    $mailbox
-	 * @param int        $id
-	 */
-	public function __construct(Connection $connection, Mailbox $mailbox, $id)
+	public function __construct(Connection $connection, Mailbox $mailbox, int $id)
 	{
 		$this->connection = $connection;
 		$this->mailbox = $mailbox;
@@ -78,11 +67,8 @@ class Mail
 
 	/**
 	 * Header checker
-	 *
-	 * @param $name
-	 * @return bool
 	 */
-	public function __isset($name)
+	public function __isset(string $name): bool
 	{
 		$this->headers !== null || $this->initializeHeaders();
 		$key = $this->normalizeHeaderName($this->lowerCamelCaseToHeaderName($name));
@@ -92,11 +78,8 @@ class Mail
 
 	/**
 	 * Header getter
-	 *
-	 * @param string $name
-	 * @return mixed
 	 */
-	public function __get($name)
+	public function __get(string $name): mixed
 	{
 		return $this->getHeader(
 				$this->normalizeHeaderName($this->lowerCamelCaseToHeaderName($name))
@@ -104,19 +87,13 @@ class Mail
 	}
 
 
-	/**
-	 * @return int
-	 */
-	public function getId()
+	public function getId(): int
 	{
 		return $this->id;
 	}
 
 
-	/**
-	 * @return Mailbox
-	 */
-	public function getMailbox()
+	public function getMailbox(): Mailbox
 	{
 		return $this->mailbox;
 	}
@@ -125,18 +102,14 @@ class Mail
 	/**
 	 * @return string[]
 	 */
-	public function getHeaders()
+	public function getHeaders(): array
 	{
 		$this->headers !== null || $this->initializeHeaders();
 		return $this->headers;
 	}
 
 
-	/**
-	 * @param string $name
-	 * @return string
-	 */
-	public function getHeader($name)
+	public function getHeader(string $name): ?string
 	{
 		$this->headers !== null || $this->initializeHeaders();
 		$index = $this->normalizeHeaderName($name);
@@ -148,10 +121,7 @@ class Mail
 	}
 
 
-	/**
-	 * @return Contact|null
-	 */
-	public function getSender()
+	public function getSender(): ?Contact
 	{
 		/* @var $from ContactList */
 		$from = $this->getHeader('from');
@@ -165,10 +135,9 @@ class Mail
 
 
 	/**
-	 * @param array $headers
 	 * @return Contact[]|null
 	 */
-	public function getRecipients(array $headers = ['to'])
+	public function getRecipients(array $headers = ['to']): ?array
 	{
 		$ret = [];
 		foreach ($headers as $hName) {
@@ -182,39 +151,27 @@ class Mail
 	}
 
 
-	/**
-	 * @return string
-	 */
-	public function getSubject()
+	public function getSubject(): ?string
 	{
 		return $this->getHeader('subject');
 	}
 
 
-	/**
-	 * @return string
-	 */
-	public function getBody()
+	public function getBody(): string
 	{
 		$this->structure !== null || $this->initializeStructure();
 		return $this->structure->getBody();
 	}
 
 
-	/**
-	 * @return string
-	 */
-	public function getHtmlBody()
+	public function getHtmlBody(): string
 	{
 		$this->structure !== null || $this->initializeStructure();
 		return $this->structure->getHtmlBody();
 	}
 
 
-	/**
-	 * @return string
-	 */
-	public function getTextBody()
+	public function getTextBody(): string
 	{
 		$this->structure !== null || $this->initializeStructure();
 		return $this->structure->getTextBody();
@@ -224,24 +181,21 @@ class Mail
 	/**
 	 * @return Attachment[]
 	 */
-	public function getAttachments()
+	public function getAttachments(): array
 	{
 		$this->structure !== null || $this->initializeStructure();
 		return $this->structure->getAttachments();
 	}
 
 
-	/**
-	 * @return array
-	 */
-	public function getFlags()
+	public function getFlags(): array
 	{
 		$this->flags !== null || $this->initializeFlags();
 		return $this->flags;
 	}
 
 
-	public function setFlags(array $flags, $autoFlush = false)
+	public function setFlags(array $flags, $autoFlush = false): void
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
 		foreach ([
@@ -261,31 +215,28 @@ class Mail
 	}
 
 
-	public function move($toMailbox)
+	public function move(string $toMailbox): void
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
 		$this->connection->getDriver()->moveMail($this->id, $toMailbox);
 	}
 
 
-	public function copy($toMailbox)
+	public function copy(string $toMailbox): void
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
 		$this->connection->getDriver()->copyMail($this->id, $toMailbox);
 	}
 
 
-	public function delete()
+	public function delete(): void
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
 		$this->connection->getDriver()->deleteMail($this->id);
 	}
 
 
-	/**
-	 * Initializes headers
-	 */
-	protected function initializeHeaders()
+	protected function initializeHeaders(): void
 	{
 		$this->headers = [];
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
@@ -295,15 +246,14 @@ class Mail
 	}
 
 
-	protected function initializeStructure()
+	protected function initializeStructure(): void
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
-		$this->structure = $this->connection->getDriver()->getStructure($this->id,
-			$this->mailbox);
+		$this->structure = $this->connection->getDriver()->getStructure($this->id, $this->mailbox);
 	}
 
 
-	protected function initializeFlags()
+	protected function initializeFlags(): void
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
 		$this->flags = $this->connection->getDriver()->getFlags($this->id);
@@ -316,7 +266,7 @@ class Mail
 	 * @param string $name Header name (with dashes, valid UTF-8 string)
 	 * @return string
 	 */
-	protected function normalizeHeaderName($name)
+	protected function normalizeHeaderName(string $name): string
 	{
 		return Strings::normalize(Strings::lower($name));
 	}
@@ -325,17 +275,16 @@ class Mail
 	/**
 	 * Converts camel cased name to normalized header name (xReceivedFrom => x-recieved-from)
 	 *
-	 * @param string $camelCasedName
 	 * @return string name with dashes
 	 */
-	protected function lowerCamelCaseToHeaderName($camelCasedName)
+	protected function lowerCamelCaseToHeaderName(string $camelCasedName): string
 	{
 		// todo: test this
 		// todo: use something like this instead http://stackoverflow.com/a/1993772
 		$dashedName = lcfirst(preg_replace_callback("~-.~",
-				function($matches) {
-				return ucfirst(substr($matches[0], 1));
-			}, $camelCasedName));
+				function ($matches) {
+					return ucfirst(substr($matches[0], 1));
+				}, $camelCasedName));
 
 		return $this->normalizeHeaderName($dashedName);
 	}

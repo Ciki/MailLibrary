@@ -5,31 +5,27 @@
 
 namespace greeny\MailLibrary;
 
-class Mailbox {
-	/** @var \greeny\MailLibrary\Connection */
-	protected $connection;
+class Mailbox
+{
 
-	/** @var string */
-	protected $name;
-
-	/**
-	 * @param Connection $connection
-	 * @param string     $name
-	 */
-	public function __construct(Connection $connection, $name)
+	public function __construct(
+		protected Connection $connection,
+		protected string $name)
 	{
-		$this->connection = $connection;
-		$this->name = $name;
+
 	}
 
-	public function getName()
+
+	public function getName(): string
 	{
 		return $this->name;
 	}
 
-	public function getMails()
+
+	public function getMails(): Selection
 	{
 		return new Selection($this->connection, $this);
 	}
+
+
 }
- 

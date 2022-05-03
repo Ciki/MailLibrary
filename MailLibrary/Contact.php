@@ -8,39 +8,19 @@ namespace greeny\MailLibrary;
 
 class Contact
 {
-	/** @var string */
-	private $mailbox;
 
-	/** @var string */
-	private $host;
-
-	/** @var string */
-	private $personal;
-
-	/** @var string */
-	private $adl;
-
-
-	/**
-	 * @param $mailbox
-	 * @param $host
-	 * @param $personal
-	 * @param $adl
-	 */
-	public function __construct($mailbox = null, $host = null, $personal = null,
-		$adl = null)
+	public function __construct(
+		private ?string $mailbox,
+		private ?string $host,
+		private ?string $personal,
+		private ?string $adl,
+	)
 	{
-		$this->mailbox = $mailbox;
-		$this->host = $host;
-		$this->personal = $personal;
-		$this->adl = $adl;
+
 	}
 
 
-	/**
-	 * @return string
-	 */
-	public function __toString()
+	public function __toString(): string
 	{
 		$address = $this->getName() ? "\"" . $this->getName() . "\" " : "";
 		$address .= $this->getAdl() ? $this->getAdl() . ":" : "";
@@ -49,46 +29,31 @@ class Contact
 	}
 
 
-	/**
-	 * @return string
-	 */
-	public function getEmail()
+	public function getEmail(): ?string
 	{
 		return $this->mailbox . "@" . $this->host;
 	}
 
 
-	/**
-	 * @return string
-	 */
-	public function getName()
+	public function getName(): ?string
 	{
 		return $this->personal;
 	}
 
 
-	/**
-	 * @return string
-	 */
-	public function getAdl()
+	public function getAdl(): ?string
 	{
 		return $this->adl;
 	}
 
 
-	/**
-	 * @return string
-	 */
-	public function getMailbox()
+	public function getMailbox(): ?string
 	{
 		return $this->mailbox;
 	}
 
 
-	/**
-	 * @return string
-	 */
-	public function getHost()
+	public function getHost(): ?string
 	{
 		return $this->host;
 	}

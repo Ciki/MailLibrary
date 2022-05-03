@@ -9,7 +9,9 @@ use greeny\MailLibrary\Attachment;
 use greeny\MailLibrary\Drivers\ImapDriver;
 use greeny\MailLibrary\Mailbox;
 
-class ImapStructure implements IStructure {
+class ImapStructure implements IStructure
+{
+	/** @type int */
 	const TYPE_TEXT = 0;
 	const TYPE_MULTIPART = 1;
 	const TYPE_MESSAGE = 2;
@@ -21,6 +23,7 @@ class ImapStructure implements IStructure {
 	const TYPE_OTHER = 8;
 	const TYPE_UNKNOWN = 9;
 
+	/** @type int */
 	const ENCODING_7BIT = 0;
 	const ENCODING_8BIT = 1;
 	const ENCODING_BINARY = 2;
@@ -28,7 +31,8 @@ class ImapStructure implements IStructure {
 	const ENCODING_QUOTED_PRINTABLE = 4;
 	const ENCODING_OTHER = 5;
 
-	protected static $typeTable = [
+
+	protected static array $typeTable = [
 		self::TYPE_TEXT => 'text',
 		self::TYPE_MULTIPART => 'multipart',
 		self::TYPE_MESSAGE => 'message',
@@ -40,68 +44,43 @@ class ImapStructure implements IStructure {
 		self::TYPE_OTHER => 'other',
 		self::TYPE_UNKNOWN => 'other',
 	];
+	protected ImapDriver $driver;
+	protected int $id;
+	protected array $htmlBodyIds = [];
+	protected array $textBodyIds = [];
+	protected array $attachmentsIds = [];
+	protected ?string $htmlBody = null;
+	protected ?string $textBody = null;
 
-	/** @var \greeny\MailLibrary\Drivers\ImapDriver */
-	protected $driver;
+	/** @var ?Attachment[] */
+	protected ?array $attachments = null;
+	protected Mailbox $mailbox;
 
-	/** @var int */
-	protected $id;
 
-	/** @var array */
-	protected $htmlBodyIds = [];
-
-	/** @var array */
-	protected $textBodyIds = [];
-
-	/** @var array */
-	protected $attachmentsIds = [];
-
-	/** @var string */
-	protected $htmlBody = null;
-
-	/** @var string */
-	protected $textBody = null;
-
-	/** @var Attachment[] */
-	protected $attachments = null;
-
-	/** @var Mailbox */
-	protected $mailbox;
-
-	/**
-	 * @param ImapDriver $driver
-	 * @param object     $structure
-	 * @param int        $mailId
-	 * @param Mailbox    $mailbox
-	 */
-	public function __construct(ImapDriver $driver, $structure, $mailId, Mailbox $mailbox)
+	public function __construct(ImapDriver $driver, object $structure, int $mailId, Mailbox $mailbox)
 	{
 		$this->driver = $driver;
 		$this->id = $mailId;
 		$this->mailbox = $mailbox;
-		if(!isset($structure->parts)) {
+		if (!isset($structure->parts)) {
 			$this->addStructurePart($structure, '0');
 		} else {
-			foreach((array)$structure->parts as $id => $part) {
+			foreach ((array) $structure->parts as $id => $part) {
 				$this->addStructurePart($part, (string) ($id + 1));
 			}
 		}
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getBody()
+
+	public function getBody(): string
 	{
 		return count($this->htmlBodyIds) ? $this->getHtmlBody() : $this->getTextBody();
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getHtmlBody()
+
+	public function getHtmlBody(): string
 	{
-		if($this->htmlBody === null) {
+		if ($this->htmlBody === null) {
 			$this->driver->switchMailbox($this->mailbox->getName());
 			return $this->htmlBody = $this->driver->getBody($this->id, $this->htmlBodyIds);
 		} else {
@@ -109,12 +88,10 @@ class ImapStructure implements IStructure {
 		}
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getTextBody()
+
+	public function getTextBody(): string
 	{
-		if($this->textBody === null) {
+		if ($this->textBody === null) {
 			$this->driver->switchMailbox($this->mailbox->getName());
 			return $this->textBody = $this->driver->getBody($this->id, $this->textBodyIds);
 		} else {
@@ -122,59 +99,62 @@ class ImapStructure implements IStructure {
 		}
 	}
 
+
 	/**
 	 * @return Attachment[]
 	 */
-	public function getAttachments()
+	public function getAttachments(): array
 	{
 		$this->driver->switchMailbox($this->mailbox->getName());
-		if($this->attachments === null) {
+		if ($this->attachments === null) {
 			$this->attachments = [];
-			foreach($this->attachmentsIds as $attachmentData) {
+			foreach ($this->attachmentsIds as $attachmentData) {
 				$this->attachments[] = new Attachment($attachmentData['name'], $this->driver->getBody($this->id, [$attachmentData]), $attachmentData['type']);
 			}
 		}
 		return $this->attachments;
 	}
 
-	protected function addStructurePart($structure, $partId)
+
+	protected function addStructurePart(object $structure, string $partId)
 	{
 		$type = $structure->type;
 		$encoding = isset($structure->encoding) ? $structure->encoding : 'UTF-8';
 		$subtype = $structure->ifsubtype ? $structure->subtype : 'PLAIN';
 
 		$parameters = [];
-		if($structure->ifparameters) {
-			foreach($structure->parameters as $parameter) {
+		if ($structure->ifparameters) {
+			foreach ($structure->parameters as $parameter) {
 				$parameters[strtolower($parameter->attribute)] = $parameter->value;
 			}
 		}
-		if($structure->ifdparameters) {
-			foreach($structure->dparameters as $parameter) {
+		if ($structure->ifdparameters) {
+			foreach ($structure->dparameters as $parameter) {
 				$parameters[strtolower($parameter->attribute)] = $parameter->value;
 			}
 		}
 
-		if(isset($parameters['filename']) || isset($parameters['name'])) {
+		if (isset($parameters['filename']) || isset($parameters['name'])) {
 			$this->attachmentsIds[] = [
 				'id' => $partId,
 				'encoding' => $encoding,
 				'name' => imap_utf8(isset($parameters['filename']) ? $parameters['filename'] : $parameters['name']),
-				'type' => self::$typeTable[$type]. '/' . $subtype,
+				'type' => self::$typeTable[$type] . '/' . $subtype,
 			];
-		} else if($type === self::TYPE_TEXT) {
-			if($subtype === 'HTML') {
+		} else if ($type === self::TYPE_TEXT) {
+			if ($subtype === 'HTML') {
 				$this->htmlBodyIds[] = ['id' => $partId, 'encoding' => $encoding];
-			} else if($subtype === 'PLAIN') {
+			} else if ($subtype === 'PLAIN') {
 				$this->textBodyIds[] = ['id' => $partId, 'encoding' => $encoding];
 			}
 		}
 
-		if(isset($structure->parts)) {
-			foreach((array)$structure->parts as $id => $part) {
-				$this->addStructurePart($part, (string)($partId.'.'.($id+1)));
+		if (isset($structure->parts)) {
+			foreach ((array) $structure->parts as $id => $part) {
+				$this->addStructurePart($part, (string) ($partId . '.' . ($id + 1)));
 			}
 		}
 	}
-}
 
+
+}

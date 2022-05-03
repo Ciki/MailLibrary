@@ -5,38 +5,33 @@
 
 namespace greeny\MailLibrary;
 
-use ArrayAccess, Countable, Iterator;
+use ArrayAccess;
+use Countable;
+use Iterator;
 
-class Selection implements ArrayAccess, Countable, Iterator {
-	/** @var \greeny\MailLibrary\Connection */
-	protected $connection;
+class Selection implements ArrayAccess, Countable, Iterator
+{
+	protected Connection $connection;
 
-	/** @var \greeny\MailLibrary\Mailbox */
-	protected $mailbox;
+	protected Mailbox $mailbox;
 
-	/** @var array */
-	protected $mails = null;
+	protected ?array $mails = null;
 
-	/** @var int */
-	protected $iterator = null;
+	protected int $iterator = 0;
 
-	/** @var array */
-	protected $mailIndexes = null;
+	protected array $mailIndexes = [];
 
-	/** @var array */
-	protected $filters = [];
+	protected array $filters = [];
 
-	/** @var int */
-	protected $limit = 0;
+	protected int $limit = 0;
 
-	/** @var int */
-	protected $offset = 0;
+	protected int $offset = 0;
 
-	/** @var int */
-	protected $orderBy = Mail::ORDER_DATE;
+	protected int $orderBy = Mail::ORDER_DATE;
 
-	/** @var string */
-	protected $orderType = 'ASC';
+	// ASC|DESC
+	protected string $orderType = 'ASC';
+
 
 	public function __construct(Connection $connection, Mailbox $mailbox)
 	{
@@ -44,70 +39,57 @@ class Selection implements ArrayAccess, Countable, Iterator {
 		$this->mailbox = $mailbox;
 	}
 
+
 	/**
 	 * Adds condition to selection
-	 *
-	 * @param string $key
-	 * @param string $value
-	 * @return $this
 	 */
-	public function where($key, $value = null)
+	public function where(string $key, mixed $value = null): self
 	{
 		$this->connection->getDriver()->checkFilter($key, $value);
 		$this->filters[] = ['key' => $key, 'value' => $value];
 		return $this;
 	}
 
+
 	/**
 	 * Adds limit (like SQL)
 	 *
-	 * @param int $limit
-	 * @return $this
 	 * @throws InvalidFilterValueException
 	 */
-	public function limit($limit)
+	public function limit(int $limit): self
 	{
-		$limit = (int) $limit;
-		if($limit < 0) {
+		if ($limit < 0) {
 			throw new InvalidFilterValueException("Limit must be bigger or equal to 0, '$limit' given.");
 		}
 		$this->limit = $limit;
 		return $this;
 	}
 
+
 	/**
 	 * Adds offset (like SQL)
 	 *
-	 * @param $offset
-	 * @return $this
 	 * @throws InvalidFilterValueException
 	 */
-	public function offset($offset)
+	public function offset(int $offset): self
 	{
-		$offset = (int) $offset;
-		if($offset < 0) {
+		if ($offset < 0) {
 			throw new InvalidFilterValueException("Offset must be bigger or equal to 0, '$offset' given.");
 		}
 		$this->offset = $offset;
 		return $this;
 	}
 
+
 	/**
-	 * Simplifies paginating.
-	 *
-	 * @param $page
-	 * @param $itemsPerPage
-	 * @return $this
 	 * @throws InvalidFilterValueException
 	 */
-	public function page($page, $itemsPerPage)
+	public function page(int $page, int $itemsPerPage): self
 	{
-		$page = (int) $page;
-		$itemsPerPage = (int) $itemsPerPage;
-		if($page <= 0) {
+		if ($page <= 0) {
 			throw new InvalidFilterValueException("Page must be at least 1, '$page' given.");
 		}
-		if($itemsPerPage <= 0) {
+		if ($itemsPerPage <= 0) {
 			throw new InvalidFilterValueException("Items per page must be at least 1, '$itemsPerPage' given.");
 		}
 		$this->offset(($page - 1) * $itemsPerPage);
@@ -115,10 +97,11 @@ class Selection implements ArrayAccess, Countable, Iterator {
 		return $this;
 	}
 
-	public function order($by, $type = 'ASC')
+
+	public function order(int $by, string $type = 'ASC'): self
 	{
 		$type = strtoupper($type);
-		if(!in_array($type, ['ASC', 'DESC'])) {
+		if (!in_array($type, ['ASC', 'DESC'])) {
 			throw new InvalidFilterValueException("Sort type must be ASC or DESC, '$type' given.");
 		}
 		$this->orderBy = $by;
@@ -126,32 +109,30 @@ class Selection implements ArrayAccess, Countable, Iterator {
 		return $this;
 	}
 
-	/**
-	 * Counts mails
-	 *
-	 * @return int
-	 */
-	public function countMails()
+
+	public function countMails(): int
 	{
 		$this->mails !== null || $this->fetchMails();
 		return count($this->mails);
 	}
+
 
 	/**
 	 * Gets all mails filtered by conditions
 	 *
 	 * @return Mail[]
 	 */
-	public function fetchAll()
+	public function fetchAll(): array
 	{
 		$this->mails !== null || $this->fetchMails();
 		return $this->mails;
 	}
 
+
 	/**
 	 * Fetches mail ids from server
 	 */
-	protected function fetchMails()
+	protected function fetchMails(): void
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
 		$ids = $this->connection->getDriver()->getMailIds($this->filters, $this->limit, $this->offset, $this->orderBy, $this->orderType);
@@ -159,102 +140,93 @@ class Selection implements ArrayAccess, Countable, Iterator {
 		$this->mails = [];
 		$this->iterator = 0;
 		$this->mailIndexes = [];
-		foreach($ids as $id) {
+		foreach ($ids as $id) {
 			$this->mails[$id] = new Mail($this->connection, $this->mailbox, $id);
 			$this->mailIndexes[$i++] = $id;
 		}
 	}
 
+
 	// INTERFACE ArrayAccess
 
-	/**
-	 * @param int $offset
-	 * @return bool
-	 */
-	public function offsetExists($offset)
+	public function offsetExists(mixed $offset): bool
 	{
 		$this->mails !== null || $this->fetchMails();
 		return isset($this->mails[$offset]);
 	}
 
+
 	/**
-	 * @param int $offset
 	 * @throws MailboxException
-	 * @return Mail
 	 */
-	public function offsetGet($offset)
+	public function offsetGet(mixed $offset): Mail
 	{
 		$this->mails !== null || $this->fetchMails();
-		if(isset($this->mails[$offset])) {
+		if (isset($this->mails[$offset])) {
 			return $this->mails[$offset];
 		} else {
 			throw new MailboxException("There is no email with id '$offset'.");
 		}
 	}
 
+
 	/**
-	 * @param int   $offset
-	 * @param mixed $value
 	 * @throws MailboxException
 	 */
-	public function offsetSet($offset, $value)
+	public function offsetSet(mixed $offset, mixed $value): void
 	{
 		throw new MailboxException("Cannot set a readonly mail.");
 	}
 
+
 	/**
-	 * @param int $offset
 	 * @throws MailboxException
 	 */
-	public function offsetUnset($offset)
+	public function offsetUnset(mixed $offset): void
 	{
 		throw new MailboxException("Cannot unset a readonly mail.");
 	}
 
+
 	// INTERFACE Countable
 
-	/**
-	 * @return int
-	 */
-	public function count()
+	public function count(): int
 	{
 		return $this->countMails();
 	}
 
+
 	// INTERFACE Iterator
 
-	/**
-	 * @return Mail
-	 */
-	public function current()
+	public function current(): Mail
 	{
 		return $this->mails[$this->mailIndexes[$this->iterator]];
 	}
 
-	public function next()
+
+	public function next(): void
 	{
 		$this->iterator++;
 	}
 
-	/**
-	 * @return int
-	 */
-	public function key()
+
+	public function key(): int
 	{
 		return $this->mailIndexes[$this->iterator];
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function valid()
+
+	public function valid(): bool
 	{
 		return isset($this->mailIndexes[$this->iterator]);
 	}
 
-	public function rewind()
+
+	public function rewind(): void
 	{
 		$this->mails !== null || $this->fetchMails();
 		$this->iterator = 0;
 	}
+
+
 }

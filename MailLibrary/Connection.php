@@ -7,103 +7,91 @@ namespace greeny\MailLibrary;
 
 use greeny\MailLibrary\Drivers\IDriver;
 
-class Connection {
-	/** @var \greeny\MailLibrary\Drivers\IDriver */
-	protected $driver;
+class Connection
+{
+	protected IDriver $driver;
+	protected bool $connected = false;
+	protected ?array $mailboxes = null;
 
-	/** @var bool */
-	protected $connected = false;
 
-	/** @var array */
-	protected $mailboxes = null;
-
-	/**
-	 * @param IDriver $driver
-	 */
 	public function __construct(IDriver $driver)
 	{
 		$this->driver = $driver;
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isConnected()
+
+	public function isConnected(): bool
 	{
 		return $this->connected;
 	}
 
+
 	/**
-	 * Connects to the server
-	 * @return Connection
 	 * @throws ConnectionException
 	 */
-	public function connect()
+	public function connect(): Connection
 	{
-		if(!$this->connected) {
+		if (!$this->connected) {
 			try {
 				$this->driver->connect();
 				$this->connected = true;
-			} catch(DriverException $e) {
+			} catch (DriverException $e) {
 				throw new ConnectionException("Cannot connect to server.", $e->getCode(), $e);
 			}
 		}
 		return $this;
 	}
 
-	/**
-	 * @return IDriver
-	 */
-	public function getDriver()
+
+	public function getDriver(): IDriver
 	{
 		return $this->driver;
 	}
 
+
 	/**
 	 * Flushes changes to server
-	 * @return Connection
 	 * @throws DriverException
 	 */
-	public function flush()
+	public function flush(): Connection
 	{
 		$this->connected || $this->connect();
 		$this->driver->flush();
 		return $this;
 	}
 
+
 	/**
 	 * Gets all mailboxes
 	 * @return Mailbox[]
 	 */
-	public function getMailboxes()
+	public function getMailboxes(): array
 	{
 		$this->mailboxes !== null || $this->initializeMailboxes();
 		return $this->mailboxes;
 	}
 
+
 	/**
 	 * Gets mailbox by name
-	 * @param $name
-	 * @return Mailbox
 	 * @throws ConnectionException
 	 */
-	public function getMailbox($name)
+	public function getMailbox(string $name): Mailbox
 	{
 		$this->mailboxes !== null || $this->initializeMailboxes();
-		if(isset($this->mailboxes[$name])) {
+		if (isset($this->mailboxes[$name])) {
 			return $this->mailboxes[$name];
 		} else {
 			throw new ConnectionException("Mailbox '$name' does not exist.");
 		}
 	}
 
+
 	/**
 	 * Creates mailbox
-	 * @param string $name
-	 * @return Mailbox
 	 * @throws DriverException
 	 */
-	public function createMailbox($name)
+	public function createMailbox(string $name): Mailbox
 	{
 		$this->connected || $this->connect();
 		$this->driver->createMailbox($name);
@@ -111,14 +99,12 @@ class Connection {
 		return $this->getMailbox($name);
 	}
 
+
 	/**
 	 * Renames mailbox
-	 * @param string $from
-	 * @param string $to
-	 * @return Mailbox
 	 * @throws DriverException
 	 */
-	public function renameMailbox($from, $to)
+	public function renameMailbox(string $from, string $to): Mailbox
 	{
 		$this->connected || $this->connect();
 		$this->driver->renameMailbox($from, $to);
@@ -126,40 +112,42 @@ class Connection {
 		return $this->getMailbox($to);
 	}
 
+
 	/**
 	 * Deletes mailbox
-	 * @param string $name
 	 * @throws DriverException
 	 */
-	public function deleteMailbox($name)
+	public function deleteMailbox(string $name): void
 	{
 		$this->connected || $this->connect();
 		$this->driver->deleteMailbox($name);
 		$this->mailboxes = null;
 	}
 
+
 	/**
-	 * Switches currently using mailbox
-	 * @param string $name
+	 * Switches currently used mailbox
 	 * @throws DriverException
-	 * @return Mailbox
 	 */
-	public function switchMailbox($name)
+	public function switchMailbox(string $name): Mailbox
 	{
 		$this->connected || $this->connect();
 		$this->driver->switchMailbox($name);
 		return $this->getMailbox($name);
 	}
 
+
 	/**
 	 * Initializes mailboxes
 	 */
-	protected function initializeMailboxes()
+	protected function initializeMailboxes(): void
 	{
 		$this->connected || $this->connect();
 		$this->mailboxes = [];
-		foreach($this->driver->getMailboxes() as $name) {
+		foreach ($this->driver->getMailboxes() as $name) {
 			$this->mailboxes[$name] = new Mailbox($this, $name);
 		}
 	}
+
+
 }

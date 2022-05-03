@@ -11,73 +11,83 @@ use Countable;
 class ContactList implements Iterator, Countable
 {
 	/** @var Contact[] */
-	protected $contacts = [];
+	protected array $contacts = [];
+	protected array $builtContacts = [];
 
-	protected $builtContacts = [];
 
-	public function addContact($mailbox = null, $host = null, $personal = null, $adl = null)
+	public function addContact(?string $mailbox = null,
+		?string $host = null,
+		?string $personal = null,
+		?string $adl = null
+	): void
 	{
-		$this->contacts[] = new Contact($mailbox,$host,$personal,$adl);
+		$this->contacts[] = new Contact($mailbox, $host, $personal, $adl);
 	}
 
-	public function build()
+
+	public function build(): void
 	{
 		$return = [];
-		foreach($this->contacts as $contact) {
+		foreach ($this->contacts as $contact) {
 			$return[] = $contact->__toString();
 		}
 		$this->builtContacts = $return;
 	}
 
-	public function getContacts()
+
+	public function getContacts(): array
 	{
 		return $this->builtContacts;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getContactsObjects()
+
+	public function getContactsObjects(): array
 	{
 		return $this->contacts;
 	}
 
-	public function __toString()
+
+	public function __toString(): string
 	{
 		return implode(', ', $this->builtContacts);
 	}
 
-	public function current()
+
+	public function current(): mixed
 	{
 		return current($this->builtContacts);
 	}
 
-	public function next()
+
+	public function next(): void
 	{
 		next($this->builtContacts);
 	}
 
-	public function key()
+
+	public function key(): mixed
 	{
 		return key($this->builtContacts);
 	}
 
-	public function valid()
+
+	public function valid(): bool
 	{
 		$key = key($this->builtContacts);
 		return ($key !== null && $key !== false);
 	}
 
-	public function rewind()
+
+	public function rewind(): void
 	{
 		reset($this->builtContacts);
 	}
 
-	/**
-	 * @return int
-	 */
-	public function count()
+
+	public function count(): int
 	{
 		return count($this->builtContacts);
 	}
+
+
 }

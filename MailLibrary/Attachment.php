@@ -5,53 +5,40 @@
 
 namespace greeny\MailLibrary;
 
-class Attachment {
-	/** @var string */
-	protected $name;
+class Attachment
+{
 
-	/** @var string */
-	protected $content;
-
-	/** @var string */
-	protected $type;
-
-	public function __construct($name, $content, $type)
+	public function __construct(
+		protected string $name,
+		protected string $content,
+		protected string $type)
 	{
-		$this->name = $name;
-		$this->content = $content;
-		$this->type = $type;
+
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getName()
+
+	public function getName(): string
 	{
 		return $this->name;
 	}
 
-	/**
-	 * @param string $filename
-	 * @return bool
-	 */
-	public function saveAs($filename)
+
+	public function saveAs(string $filename): bool
 	{
 		return file_put_contents($filename, $this->content) !== false;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getContent()
+
+	public function getContent(): string
 	{
 		return $this->content;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getType()
+
+	public function getType(): string
 	{
 		return $this->type;
 	}
+
+
 }

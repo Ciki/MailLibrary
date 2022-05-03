@@ -26,7 +26,7 @@ class MailLibraryExtension extends CompilerExtension
 	}
 
 
-	public function loadConfiguration()
+	public function loadConfiguration(): void
 	{
 		$config = $this->getConfig()->imap;
 		$builder = $this->getContainerBuilder();

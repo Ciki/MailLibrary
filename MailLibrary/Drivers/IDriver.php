@@ -10,134 +10,112 @@ use greeny\MailLibrary\Mail;
 use greeny\MailLibrary\Mailbox;
 use greeny\MailLibrary\Structures\IStructure;
 
-interface IDriver {
+interface IDriver
+{
+
 	/**
 	 * Connects to server
 	 * @throws DriverException
 	 */
-	function connect();
+	function connect(): void;
 
 	/**
 	 * Flushes changes to server
 	 * @throws DriverException
 	 */
-	function flush();
+	function flush(): void;
 
 	/**
 	 * Gets all mailboxes
-	 * @return array of string
+	 * @return string[]
 	 * @throws DriverException
 	 */
-	function getMailboxes();
+	function getMailboxes(): array;
 
 	/**
 	 * Creates new mailbox
-	 * @param string $name
 	 * @throws DriverException
 	 */
-	function createMailbox($name);
+	function createMailbox(string $name): void;
 
 	/**
 	 * Renames mailbox
-	 * @param string $from
-	 * @param string $to
 	 * @throws DriverException
 	 */
-	function renameMailbox($from, $to);
+	function renameMailbox(string $from, string $to): void;
 
 	/**
 	 * Deletes mailbox
-	 * @param string $name
 	 * @throws DriverException
 	 */
-	function deleteMailbox($name);
+	function deleteMailbox(string $name): void;
 
 	/**
 	 * Switches current mailbox
-	 * @param string $name
 	 * @throws DriverException
 	 */
-	function switchMailbox($name);
+	function switchMailbox(string $name): void;
 
 	/**
 	 * Finds UIDs of mails by filter
-	 *
-	 * @param array  $filters
-	 * @param int    $limit
-	 * @param int    $offset
-	 * @param int    $orderBy
-	 * @param string $orderType
 	 * @return array of UIDs
 	 */
-	function getMailIds(array $filters, $limit = 0, $offset = 0, $orderBy = Mail::ORDER_DATE, $orderType = 'ASC');
+	function getMailIds(
+		array $filters,
+		int $limit = 0,
+		int $offset = 0,
+		int $orderBy = Mail::ORDER_DATE,
+		string $orderType = 'ASC'
+	): array;
 
 	/**
 	 * Checks if filter is applicable for this driver
-	 * @param string $key
-	 * @param mixed  $value
 	 * @throws DriverException
 	 */
-	function checkFilter($key, $value = NULL);
+	function checkFilter(string $key, mixed $value = null): void;
 
 	/**
 	 * Gets mail headers
-	 * @param int $mailId
 	 * @return array of name => value
 	 */
-	function getHeaders($mailId);
+	function getHeaders(int $mailId): array;
 
 	/**
 	 * Creates structure for mail
-	 * @param int     $mailId
-	 * @param Mailbox $mailbox
-	 * @return IStructure
 	 */
-	function getStructure($mailId, Mailbox $mailbox);
+	function getStructure(int $mailId, Mailbox $mailbox): IStructure;
 
 	/**
 	 * Gets part of body
-	 * @param int   $mailId
-	 * @param array $data
-	 * @return string
 	 */
-	function getBody($mailId, array $data);
+	function getBody(int $mailId, array $data): string;
 
 	/**
 	 * Gets flags for mail
-	 * @param int $mailId
-	 * @return array
 	 */
-	function getFlags($mailId);
+	function getFlags(int $mailId): array;
 
 	/**
 	 * Sets one flag for mail
-	 * @param int    $mailId
-	 * @param string $flag
-	 * @param bool   $value
 	 * @throws DriverException
 	 */
-	function setFlag($mailId, $flag, $value);
+	function setFlag(int $mailId, string $flag, bool $value): void;
 
 	/**
 	 * Copies mail to another mailbox
-	 * @param int    $mailId
-	 * @param string $toMailbox
 	 * @throws DriverException
 	 */
-	function copyMail($mailId, $toMailbox);
+	function copyMail(int $mailId, string $toMailbox): void;
 
 	/**
 	 * Moves mail to another mailbox
-	 * @param int    $mailId
-	 * @param string $toMailbox
 	 * @throws DriverException
 	 */
-	function moveMail($mailId, $toMailbox);
+	function moveMail(int $mailId, string $toMailbox): void;
 
 	/**
 	 * Deletes mail
-	 * @param int $mailId
 	 * @throws DriverException
 	 */
-	function deleteMail($mailId);
-} 
+	function deleteMail(int $mailId): void;
+}

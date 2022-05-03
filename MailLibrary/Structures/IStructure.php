@@ -7,24 +7,17 @@ namespace greeny\MailLibrary\Structures;
 
 use greeny\MailLibrary\Attachment;
 
-interface IStructure {
-	/**
-	 * @return string
-	 */
-	function getBody();
+interface IStructure
+{
 
-	/**
-	 * @return string
-	 */
-	function getHtmlBody();
+	function getBody(): string;
 
-	/**
-	 * @return string
-	 */
-	function getTextBody();
+	function getHtmlBody(): string;
+
+	function getTextBody(): string;
 
 	/**
 	 * @return Attachment[]
 	 */
-	function getAttachments();
+	function getAttachments(): array;
 }
