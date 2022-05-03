@@ -306,7 +306,7 @@ class ImapDriver implements IDriver
 		$body = [];
 		foreach ($data as $part) {
 			assert(is_array($part));
-			$dataMessage = ($part['id'] === 0) ? @imap_body($this->resource, $mailId, FT_UID | FT_PEEK) : @imap_fetchbody($this->resource, $mailId, $part['id'], FT_UID | FT_PEEK);
+			$dataMessage = ($part['id'] === '0') ? @imap_body($this->resource, $mailId, FT_UID | FT_PEEK) : @imap_fetchbody($this->resource, $mailId, $part['id'], FT_UID | FT_PEEK);
 			if ($dataMessage === false) {
 				throw new DriverException("Cannot read given message part - " . error_get_last()["message"]);
 			}
