@@ -252,7 +252,13 @@ class ImapDriver implements IDriver
 				$text = '';
 				foreach ($decoded as $part) {
 					if ($part->charset !== 'UTF-8' && $part->charset !== 'default') {
-						$text .= @mb_convert_encoding($part->text, 'UTF-8', $part->charset); // todo: handle this more properly
+						try {
+							// throws ValueError since php8.0.0 for non-supported charsets, eg. `windows-1250`
+							// https://www.php.net/manual/de/mbstring.supported-encodings.php
+							$text .= @mb_convert_encoding($part->text, 'UTF-8', $part->charset);
+						} catch (\ValueError $exception) {
+							$text .= iconv($part->charset, 'UTF-8', $part->text);
+						}
 					} else {
 						$text .= $part->text;
 					}
