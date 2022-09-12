@@ -203,11 +203,11 @@ class Mail
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
 		foreach ([
-		Mail::FLAG_ANSWERED,
-		Mail::FLAG_DELETED,
-		Mail::FLAG_DELETED,
-		Mail::FLAG_FLAGGED,
-		Mail::FLAG_SEEN,
+			Mail::FLAG_ANSWERED,
+			Mail::FLAG_DELETED,
+			Mail::FLAG_DRAFT,
+			Mail::FLAG_FLAGGED,
+			Mail::FLAG_SEEN,
 		] as $flag) {
 			if (isset($flags[$flag])) {
 				$this->connection->getDriver()->setFlag($this->id, $flag, $flags[$flag]);
