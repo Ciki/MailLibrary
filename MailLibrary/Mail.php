@@ -86,7 +86,7 @@ class Mail
 	public function __get(string $name): mixed
 	{
 		return $this->getHeader(
-				$this->normalizeHeaderName($this->lowerCamelCaseToHeaderName($name))
+			$this->normalizeHeaderName($this->lowerCamelCaseToHeaderName($name))
 		);
 	}
 
@@ -293,6 +293,6 @@ class Mail
 			$camelCasedName
 		));
 
-		return $this->normalizeHeaderName($dashedName);
+		return $dashedName;
 	}
 }
