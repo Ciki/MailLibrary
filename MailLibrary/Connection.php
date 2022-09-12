@@ -1,7 +1,10 @@
 <?php
+
 /**
  * @author Tomáš Blatný
  */
+
+declare(strict_types=1);
 
 namespace greeny\MailLibrary;
 
@@ -148,6 +151,4 @@ class Connection
 			$this->mailboxes[$name] = new Mailbox($this, $name);
 		}
 	}
-
-
 }

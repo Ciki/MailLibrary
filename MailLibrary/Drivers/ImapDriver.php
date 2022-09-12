@@ -1,7 +1,10 @@
 <?php
+
 /**
  * @author Tomáš Blatný
  */
+
+declare(strict_types=1);
 
 namespace greeny\MailLibrary\Drivers;
 
@@ -171,8 +174,7 @@ class ImapDriver implements IDriver
 		int $offset = 0,
 		int $orderBy = Mail::ORDER_DATE,
 		string $orderType = 'ASC'
-	): array
-	{
+	): array {
 		$filter = $this->buildFilters($filters);
 
 		$orderType = $orderType === 'ASC' ? 1 : 0;
@@ -462,6 +464,4 @@ class ImapDriver implements IDriver
 	{
 		return mb_convert_encoding($name, 'UTF7-IMAP', 'UTF-8');
 	}
-
-
 }

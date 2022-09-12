@@ -1,7 +1,10 @@
 <?php
+
 /**
  * @author Tomáš Blatný
  */
+
+declare(strict_types=1);
 
 namespace greeny\MailLibrary\Structures;
 
@@ -155,6 +158,4 @@ class ImapStructure implements IStructure
 			}
 		}
 	}
-
-
 }

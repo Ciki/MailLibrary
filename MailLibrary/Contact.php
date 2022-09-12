@@ -1,8 +1,11 @@
 <?php
+
 /**
  * @author Martin Pecha
  * @author Tomáš Blatný
  */
+
+declare(strict_types=1);
 
 namespace greeny\MailLibrary;
 
@@ -14,9 +17,7 @@ class Contact
 		private ?string $host,
 		private ?string $personal,
 		private ?string $adl,
-	)
-	{
-
+	) {
 	}
 
 
@@ -57,6 +58,4 @@ class Contact
 	{
 		return $this->host;
 	}
-
-
 }

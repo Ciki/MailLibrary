@@ -1,7 +1,10 @@
 <?php
+
 /**
  * @author Tomáš Blatný
  */
+
+declare(strict_types=1);
 
 namespace greeny\MailLibrary;
 
@@ -11,9 +14,8 @@ class Attachment
 	public function __construct(
 		protected string $name,
 		protected string $content,
-		protected string $type)
-	{
-
+		protected string $type
+	) {
 	}
 
 
@@ -39,6 +41,4 @@ class Attachment
 	{
 		return $this->type;
 	}
-
-
 }

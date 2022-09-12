@@ -1,7 +1,10 @@
 <?php
+
 /**
  * @author Tomáš Blatný
  */
+
+declare(strict_types=1);
 
 namespace greeny\MailLibrary;
 
@@ -10,9 +13,8 @@ class Mailbox
 
 	public function __construct(
 		protected Connection $connection,
-		protected string $name)
-	{
-
+		protected string $name
+	) {
 	}
 
 
@@ -26,6 +28,4 @@ class Mailbox
 	{
 		return new Selection($this->connection, $this);
 	}
-
-
 }

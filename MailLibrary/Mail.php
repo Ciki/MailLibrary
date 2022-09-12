@@ -1,7 +1,10 @@
 <?php
+
 /**
  * @author Tomáš Blatný
  */
+
+declare(strict_types=1);
 
 namespace greeny\MailLibrary;
 
@@ -123,7 +126,7 @@ class Mail
 
 	public function getSender(): ?Contact
 	{
-		/* @var $from ContactList */
+		/** @var ContactList $from */
 		$from = $this->getHeader('from');
 		if ($from) {
 			$contacts = $from->getContactsObjects();
@@ -281,13 +284,14 @@ class Mail
 	{
 		// todo: test this
 		// todo: use something like this instead http://stackoverflow.com/a/1993772
-		$dashedName = lcfirst(preg_replace_callback("~-.~",
-				function ($matches) {
-					return ucfirst(substr($matches[0], 1));
-				}, $camelCasedName));
+		$dashedName = lcfirst(preg_replace_callback(
+			"~-.~",
+			function ($matches) {
+				return ucfirst(substr($matches[0], 1));
+			},
+			$camelCasedName
+		));
 
 		return $this->normalizeHeaderName($dashedName);
 	}
-
-
 }

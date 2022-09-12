@@ -1,7 +1,10 @@
 <?php
+
 /**
  * @author Tomáš Blatný
  */
+
+declare(strict_types=1);
 
 namespace greeny\MailLibrary\Extensions;
 
@@ -15,13 +18,13 @@ class MailLibraryExtension extends CompilerExtension
 	public function getConfigSchema(): Schema
 	{
 		return Expect::structure([
-				'imap' => Expect::structure([
-					'username' => Expect::string(),
-					'password' => Expect::string(),
-					'host' => Expect::string('localhost'),
-					'port' => Expect::int(993),
-					'ssl' => Expect::bool(true),
-				])
+			'imap' => Expect::structure([
+				'username' => Expect::string(),
+				'password' => Expect::string(),
+				'host' => Expect::string('localhost'),
+				'port' => Expect::int(993),
+				'ssl' => Expect::bool(true),
+			])
 		]);
 	}
 
@@ -41,8 +44,6 @@ class MailLibraryExtension extends CompilerExtension
 				$config->host,
 				$config->port,
 				$config->ssl,
-		]);
+			]);
 	}
-
-
 }

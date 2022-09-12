@@ -1,7 +1,10 @@
 <?php
+
 /**
  * @author Tomáš Blatný
  */
+
+declare(strict_types=1);
 
 namespace greeny\MailLibrary;
 
@@ -227,6 +230,4 @@ class Selection implements ArrayAccess, Countable, Iterator
 		$this->mails !== null || $this->fetchMails();
 		$this->iterator = 0;
 	}
-
-
 }

@@ -1,7 +1,10 @@
 <?php
+
 /**
  * @author Tomáš Blatný
  */
+
+declare(strict_types=1);
 
 namespace greeny\MailLibrary;
 
@@ -15,12 +18,12 @@ class ContactList implements Iterator, Countable
 	protected array $builtContacts = [];
 
 
-	public function addContact(?string $mailbox = null,
+	public function addContact(
+		?string $mailbox = null,
 		?string $host = null,
 		?string $personal = null,
 		?string $adl = null
-	): void
-	{
+	): void {
 		$this->contacts[] = new Contact($mailbox, $host, $personal, $adl);
 	}
 
@@ -88,6 +91,4 @@ class ContactList implements Iterator, Countable
 	{
 		return count($this->builtContacts);
 	}
-
-
 }
