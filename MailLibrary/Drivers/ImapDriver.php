@@ -172,7 +172,7 @@ class ImapDriver implements IDriver
 		array $filters,
 		int $limit = 0,
 		int $offset = 0,
-		int $orderBy = Mail::ORDER_DATE,
+		int $orderBy = Mail::ORDER_ARRIVAL,
 		string $orderType = 'ASC'
 	): array {
 		$filter = $this->buildFilters($filters);
