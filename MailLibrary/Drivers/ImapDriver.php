@@ -15,13 +15,14 @@ use greeny\MailLibrary\Mail;
 use greeny\MailLibrary\Mailbox;
 use greeny\MailLibrary\Structures\ImapStructure;
 use greeny\MailLibrary\Structures\IStructure;
+use IMAP\Connection;
 use Nette\Utils\Strings;
 
 class ImapDriver implements IDriver
 {
 	protected string $username;
 	protected string $password;
-	protected /* resource */ $resource;
+	protected /*resource (php<8.1) | Connection (php>=8.1)*/ $resource;
 	protected string $server;
 	protected ?string $currentMailbox = null;
 	protected static array $filterTable = [
@@ -166,7 +167,7 @@ class ImapDriver implements IDriver
 	 * Finds UIDs of mails by filter
 	 *
 	 * @throws DriverException
-	 * @return array of UIDs
+	 * @return array of int UIDs
 	 */
 	public function getMailIds(
 		array $filters,
@@ -177,9 +178,9 @@ class ImapDriver implements IDriver
 	): array {
 		$filter = $this->buildFilters($filters);
 
-		$orderType = $orderType === 'ASC' ? 1 : 0;
+		$reverseOrder = $orderType === 'ASC';
 
-		if (!is_array($ids = imap_sort($this->resource, $orderBy, $orderType, SE_UID | SE_NOPREFETCH, $filter, 'UTF-8'))) {
+		if (!is_array($ids = imap_sort($this->resource, $orderBy, $reverseOrder, SE_UID | SE_NOPREFETCH, $filter, 'UTF-8'))) {
 			throw new DriverException("Cannot get mails: " . imap_last_error());
 		}
 
@@ -219,7 +220,7 @@ class ImapDriver implements IDriver
 	/**
 	 * Gets mail headers
 	 *
-	 * @return array of name => value
+	 * @return array of name => value (`value` is of type string, or ContactList for self::$contactHeaders)
 	 */
 	public function getHeaders(int $mailId): array
 	{
@@ -368,11 +369,11 @@ class ImapDriver implements IDriver
 	public function setFlag(int $mailId, string $flag, bool $value): void
 	{
 		if ($value) {
-			if (!imap_setflag_full($this->resource, $mailId, $flag, ST_UID)) {
+			if (!imap_setflag_full($this->resource, (string) $mailId, $flag, ST_UID)) {
 				throw new DriverException("Cannot set flag '$flag': " . imap_last_error());
 			}
 		} else {
-			if (!imap_clearflag_full($this->resource, $mailId, $flag, ST_UID)) {
+			if (!imap_clearflag_full($this->resource, (string) $mailId, $flag, ST_UID)) {
 				throw new DriverException("Cannot unset flag '$flag': " . imap_last_error());
 			}
 		}
@@ -385,7 +386,7 @@ class ImapDriver implements IDriver
 	 */
 	public function copyMail(int $mailId, string $toMailbox): void
 	{
-		if (!imap_mail_copy($this->resource, $mailId, /* $this->server . */ $this->encodeMailboxName($toMailbox), CP_UID)) {
+		if (!imap_mail_copy($this->resource, (string) $mailId, /* $this->server . */ $this->encodeMailboxName($toMailbox), CP_UID)) {
 			throw new DriverException("Cannot copy mail to mailbox '$toMailbox': " . imap_last_error());
 		}
 	}
@@ -397,7 +398,7 @@ class ImapDriver implements IDriver
 	 */
 	public function moveMail(int $mailId, string $toMailbox): void
 	{
-		if (!imap_mail_move($this->resource, $mailId, /* $this->server . */ $this->encodeMailboxName($toMailbox), CP_UID)) {
+		if (!imap_mail_move($this->resource, (string) $mailId, /* $this->server . */ $this->encodeMailboxName($toMailbox), CP_UID)) {
 			throw new DriverException("Cannot copy mail to mailbox '$toMailbox': " . imap_last_error());
 		}
 	}
@@ -409,7 +410,7 @@ class ImapDriver implements IDriver
 	 */
 	public function deleteMail(int $mailId): void
 	{
-		if (!imap_delete($this->resource, $mailId, FT_UID)) {
+		if (!imap_delete($this->resource, (string) $mailId, FT_UID)) {
 			throw new DriverException("Cannot delete mail: " . imap_last_error());
 		}
 	}
