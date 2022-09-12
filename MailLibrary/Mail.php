@@ -104,7 +104,7 @@ class Mail
 
 
 	/**
-	 * @return string[]
+	 * @return array of string|ContactList
 	 */
 	public function getHeaders(): array
 	{
@@ -113,7 +113,7 @@ class Mail
 	}
 
 
-	public function getHeader(string $name): ?string
+	public function getHeader(string $name): null|string|ContactList
 	{
 		$this->headers !== null || $this->initializeHeaders();
 		$index = $this->normalizeHeaderName($name);
