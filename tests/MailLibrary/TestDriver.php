@@ -94,8 +94,7 @@ class TestDriver implements IDriver
 		int $offset = 0,
 		int $orderBy = Mail::ORDER_DATE,
 		string $orderType = 'ASC'
-	): array
-	{
+	): array {
 		if (count($filters)) {
 			return array(1);
 		} else {
@@ -115,7 +114,7 @@ class TestDriver implements IDriver
 				throw new DriverException("Invalid value type for filter '$key', expected string, got " . gettype($value) . ".");
 			}
 		} else if (strpos($filtered, '%d') !== FALSE) {
-			if (!($value instanceof DateTime) && !is_int($value) && !strtotime($value)) {
+			if (!($value instanceof DateTime) && !is_int($value) && !(is_string($value) && strtotime($value))) {
 				throw new DriverException("Invalid value type for filter '$key', expected DateTime or timestamp, or textual representation of date, got " . gettype($value) . ".");
 			}
 		} else if (strpos($filtered, '%b') !== FALSE) {

@@ -24,9 +24,9 @@ class TestFilter {
 
 $exceptions = array(
 	new TestFilter('ABC', null, "Invalid filter key 'ABC'."),
-	new TestFilter('SUBJECT', null, "Invalid value type for filter 'SUBJECT', expected string, got null."),
-	new TestFilter('SINCE', null, "Invalid value type for filter 'SINCE', expected DateTime or timestamp, or textual representation of date, got null."),
-	new TestFilter('SEEN', null, "Invalid value type for filter 'SEEN', expected bool, got null."),
+	new TestFilter('SUBJECT', null, "Invalid value type for filter 'SUBJECT', expected string, got NULL."),
+	new TestFilter('SINCE', null, "Invalid value type for filter 'SINCE', expected DateTime or timestamp, or textual representation of date, got NULL."),
+	new TestFilter('SEEN', null, "Invalid value type for filter 'SEEN', expected bool, got NULL."),
 	new TestFilter('OLD', TRUE, "Cannot assign value to filter 'OLD'."),
 );
 
