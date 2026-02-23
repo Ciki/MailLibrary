@@ -269,7 +269,9 @@ class ImapDriver implements IDriver
 
 				$headers[$key] = trim($text);
 			} else if (in_array(strtolower($key), self::$contactHeaders)) {
-				$contacts = imap_rfc822_parse_adrlist(imap_utf8(trim($header)), 'UNKNOWN_HOST');
+				$headerValue = $this->sanitizeContactHeader(imap_utf8(trim($header)));
+
+				$contacts = imap_rfc822_parse_adrlist($headerValue, 'UNKNOWN_HOST');
 				$list = new ContactList();
 				foreach ($contacts as $contact) {
 					$list->addContact(
@@ -464,5 +466,20 @@ class ImapDriver implements IDriver
 	protected function encodeMailboxName(string $name): string
 	{
 		return mb_convert_encoding($name, 'UTF7-IMAP', 'UTF-8');
+	}
+
+
+	/**
+	 * Sanitizes contact header by quoting display names that contain commas but are not already quoted.
+	 * e.g. "Slovenska sporitelna, a.s. <notifikacie@slspsk>" => ""Slovenska sporitelna, a.s. " <notifikacie@slspsk>"
+	 *
+	 * @internal for testing
+	 */
+	public function sanitizeContactHeader(string $headerValue): string
+	{
+		if (str_contains($headerValue, ',') && !str_contains($headerValue, '"') && str_contains($headerValue, '<')) {
+			$headerValue = (string) preg_replace('/^([^<]+)<([^>]+)>$/u', '"$1" <$2>', $headerValue);
+		}
+		return $headerValue;
 	}
 }
