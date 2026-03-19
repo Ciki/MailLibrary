@@ -20,8 +20,7 @@ use Nette\Utils\Strings;
 
 class ImapDriver implements IDriver
 {
-	/*resource (php<8.1) | Connection (php>=8.1)*/
-	protected $resource;
+	protected \IMAP\Connection|false $resource = false;
 
 	protected string $server;
 

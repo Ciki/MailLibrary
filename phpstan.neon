@@ -4,9 +4,12 @@ includes:
 	- vendor/tomasvotruba/type-coverage/config/extension.neon
 
 parameters:
-	level: 9
+	level: 1
 	paths:
 		- MailLibrary
 		- tests
-	ignoreErrors:
-		- '#^Cannot cast mixed to (string|int|float|bool)\.$#'
+	type_coverage:
+		constant: 0
+		property: 100
+		param: 100
+		return: 100

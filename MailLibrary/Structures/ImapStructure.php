@@ -126,7 +126,7 @@ class ImapStructure implements IStructure
 	}
 
 
-	protected function addStructurePart(object $structure, string $partId)
+	protected function addStructurePart(object $structure, string $partId): void
 	{
 		$type = $structure->type;
 		$encoding = $structure->encoding ?? 'UTF-8';

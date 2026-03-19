@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/exceptions.php';
 
-spl_autoload_register(function ($type): void {
+spl_autoload_register(function (string $type): void {
 	static $paths = [
 		'greeny\maillibrary\connection' => 'Connection.php',
 		'greeny\maillibrary\mailbox' => 'Mailbox.php',

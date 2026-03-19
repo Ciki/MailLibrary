@@ -205,7 +205,7 @@ class Mail
 	}
 
 
-	public function setFlags(array $flags, $autoFlush = false): void
+	public function setFlags(array $flags, bool $autoFlush = false): void
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
 		foreach (
@@ -295,7 +295,7 @@ class Mail
 		// todo: use something like this instead http://stackoverflow.com/a/1993772
 		$dashedName = lcfirst((string) preg_replace_callback(
 			'~-.~',
-			fn($matches) => ucfirst(substr((string) $matches[0], 1)),
+			fn(array $matches) => ucfirst(substr((string) $matches[0], 1)),
 			$camelCasedName
 		));
 

@@ -153,7 +153,7 @@ class TestDriver implements IDriver
 
 	public function getFlags(int $mailId): array
 	{
-
+		return [];
 	}
 
 
@@ -206,6 +206,6 @@ class TestStructure implements IStructure
 	 */
 	public function getAttachments(): array
 	{
-
+		return [];
 	}
 }
