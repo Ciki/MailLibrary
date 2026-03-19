@@ -10,16 +10,30 @@ namespace greeny\MailLibrary;
 
 use ArrayAccess;
 use Countable;
+use DateTimeInterface;
 use Iterator;
 
+/**
+ * @implements ArrayAccess<int, Mail>
+ * @implements Iterator<int, Mail>
+ */
 class Selection implements ArrayAccess, Countable, Iterator
 {
+	/**
+	 * @var Mail[]|null
+	 */
 	protected ?array $mails = null;
 
 	protected int $iterator = 0;
 
+	/**
+	 * @var int[]
+	 */
 	protected array $mailIndexes = [];
 
+	/**
+	 * @var array<int, array{key: string, value: string|int|DateTimeInterface|bool|null}>
+	 */
 	protected array $filters = [];
 
 	protected int $limit = 0;
@@ -42,7 +56,7 @@ class Selection implements ArrayAccess, Countable, Iterator
 	/**
 	 * Adds condition to selection
 	 */
-	public function where(string $key, mixed $value = null): self
+	public function where(string $key, string|int|DateTimeInterface|bool|null $value = null): self
 	{
 		$this->connection->getDriver()->checkFilter($key, $value);
 		$this->filters[] = [
@@ -122,6 +136,7 @@ class Selection implements ArrayAccess, Countable, Iterator
 		if ($this->mails === null) {
 			$this->fetchMails();
 		}
+		
 		return count($this->mails);
 	}
 
@@ -136,6 +151,7 @@ class Selection implements ArrayAccess, Countable, Iterator
 		if ($this->mails === null) {
 			$this->fetchMails();
 		}
+		
 		return $this->mails;
 	}
 
@@ -145,6 +161,7 @@ class Selection implements ArrayAccess, Countable, Iterator
 		if ($this->mails === null) {
 			$this->fetchMails();
 		}
+		
 		return isset($this->mails[$offset]);
 	}
 
@@ -157,9 +174,11 @@ class Selection implements ArrayAccess, Countable, Iterator
 		if ($this->mails === null) {
 			$this->fetchMails();
 		}
+		
 		if (isset($this->mails[$offset])) {
 			return $this->mails[$offset];
 		}
+		
 		throw new MailboxException("There is no email with id '{$offset}'.");
 	}
 
@@ -217,6 +236,7 @@ class Selection implements ArrayAccess, Countable, Iterator
 		if ($this->mails === null) {
 			$this->fetchMails();
 		}
+		
 		$this->iterator = 0;
 	}
 

@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace greeny\MailLibrary\Drivers;
 
 use DateTime;
+use DateTimeInterface;
 use greeny\MailLibrary\ContactList;
 use greeny\MailLibrary\DriverException;
 use greeny\MailLibrary\Mail;
@@ -26,6 +27,9 @@ class ImapDriver implements IDriver
 
 	protected ?string $currentMailbox = null;
 
+	/**
+	 * @var array<string, string>
+	 */
 	protected static array $filterTable = [
 		Mail::ANSWERED => '%bANSWERED',
 		Mail::BCC => 'BCC "%s"',
@@ -48,6 +52,9 @@ class ImapDriver implements IDriver
 		Mail::TO => 'TO "%s"',
 	];
 
+	/**
+	 * @var string[]
+	 */
 	protected static array $contactHeaders = [
 		'to',
 		'from',
@@ -174,8 +181,9 @@ class ImapDriver implements IDriver
 	/**
 	 * Finds UIDs of mails by filter
 	 *
+	 * @param array<int, array{key: string, value: string|int|DateTimeInterface|bool|null}> $filters
 	 * @throws DriverException
-	 * @return array of int UIDs
+	 * @return int[] of UIDs
 	 */
 	public function getMailIds(
 		array $filters,
@@ -201,7 +209,7 @@ class ImapDriver implements IDriver
 	 *
 	 * @throws DriverException
 	 */
-	public function checkFilter(string $key, mixed $value = null): void
+	public function checkFilter(string $key, string|int|DateTimeInterface|bool|null $value = null): void
 	{
 		if (!in_array($key, array_keys(self::$filterTable), true)) {
 			throw new DriverException("Invalid filter key '{$key}'.");
@@ -228,8 +236,7 @@ class ImapDriver implements IDriver
 
 	/**
 	 * Gets mail headers
-	 *
-	 * @return array of name => value (`value` is of type string, or ContactList for self::$contactHeaders)
+	 * @return array<string, string|ContactList> of name => value (`value` is of type string, or ContactList for self::$contactHeaders)
 	 */
 	public function getHeaders(int $mailId): array
 	{
@@ -275,6 +282,7 @@ class ImapDriver implements IDriver
 						$text .= $part->text;
 					}
 				}
+				
 				$headers[$key] = trim($text);
 			} elseif (in_array(strtolower($key), self::$contactHeaders, true)) {
 				$headerValue = $this->sanitizeContactHeader(imap_utf8(trim($header)));
@@ -312,14 +320,13 @@ class ImapDriver implements IDriver
 	/**
 	 * Gets part of body
 	 *
-	 * @param array $data requires id and encoding keys
+	 * @param array<int, array<string, string|int>> $data requires id and encoding keys
 	 * @throws DriverException
 	 */
 	public function getBody(int $mailId, array $data): string
 	{
 		$body = [];
 		foreach ($data as $part) {
-			assert(is_array($part));
 			$dataMessage = ($part['id'] === '0') ? @imap_body($this->resource, $mailId, FT_UID | FT_PEEK) : @imap_fetchbody($this->resource, $mailId, $part['id'], FT_UID | FT_PEEK);
 			if ($dataMessage === false) {
 				throw new DriverException('Cannot read given message part - ' . error_get_last()['message']);
@@ -343,6 +350,7 @@ class ImapDriver implements IDriver
 
 	/**
 	 * Gets flags for mail
+	 * @return array<string, bool>
 	 */
 	public function getFlags(int $mailId): array
 	{
@@ -446,6 +454,7 @@ class ImapDriver implements IDriver
 
 	/**
 	 * Builds filter string from filters
+	 * @param array<int, array{key: string, value: string|int|DateTimeInterface|bool|null}> $filters
 	 */
 	protected function buildFilters(array $filters): string
 	{
@@ -481,6 +490,7 @@ class ImapDriver implements IDriver
 
 	/**
 	 * Builds list from ids array
+	 * @param int[] $ids
 	 */
 	protected function buildIdList(array $ids): string
 	{

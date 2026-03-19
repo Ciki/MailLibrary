@@ -4,7 +4,7 @@ includes:
 	- vendor/tomasvotruba/type-coverage/config/extension.neon
 
 parameters:
-	level: 5
+	level: 6
 	paths:
 		- MailLibrary
 		- tests

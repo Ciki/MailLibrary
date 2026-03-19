@@ -32,6 +32,9 @@ class ImapStructure implements IStructure
 	public const int ENCODING_QUOTED_PRINTABLE = 4;
 	public const int ENCODING_OTHER = 5;
 
+	/**
+	 * @var array<int, string>
+	 */
 	protected static array $typeTable = [
 		self::TYPE_TEXT => 'text',
 		self::TYPE_MULTIPART => 'multipart',
@@ -45,10 +48,19 @@ class ImapStructure implements IStructure
 		self::TYPE_UNKNOWN => 'other',
 	];
 
+	/**
+	 * @var array<int, array{id: string, encoding: int}>
+	 */
 	protected array $htmlBodyIds = [];
 
+	/**
+	 * @var array<int, array{id: string, encoding: int}>
+	 */
 	protected array $textBodyIds = [];
 
+	/**
+	 * @var array<int, array{id: string, encoding: int, name: string, type: string}>
+	 */
 	protected array $attachmentsIds = [];
 
 	protected ?string $htmlBody = null;
@@ -89,6 +101,7 @@ class ImapStructure implements IStructure
 			$this->driver->switchMailbox($this->mailbox->getName());
 			return $this->htmlBody = $this->driver->getBody($this->id, $this->htmlBodyIds);
 		}
+		
 		return $this->htmlBody;
 	}
 
@@ -99,6 +112,7 @@ class ImapStructure implements IStructure
 			$this->driver->switchMailbox($this->mailbox->getName());
 			return $this->textBody = $this->driver->getBody($this->id, $this->textBodyIds);
 		}
+		
 		return $this->textBody;
 	}
 

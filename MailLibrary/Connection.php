@@ -14,6 +14,9 @@ class Connection
 {
 	protected bool $connected = false;
 
+	/**
+	 * @var Mailbox[]|null
+	 */
 	protected ?array $mailboxes = null;
 
 
@@ -62,6 +65,7 @@ class Connection
 		if (!$this->connected) {
 			$this->connect();
 		}
+		
 		$this->driver->flush();
 		return $this;
 	}
@@ -76,6 +80,7 @@ class Connection
 		if ($this->mailboxes === null) {
 			$this->initializeMailboxes();
 		}
+		
 		return $this->mailboxes;
 	}
 
@@ -89,9 +94,11 @@ class Connection
 		if ($this->mailboxes === null) {
 			$this->initializeMailboxes();
 		}
+		
 		if (isset($this->mailboxes[$name])) {
 			return $this->mailboxes[$name];
 		}
+		
 		throw new ConnectionException("Mailbox '{$name}' does not exist.");
 	}
 
@@ -105,6 +112,7 @@ class Connection
 		if (!$this->connected) {
 			$this->connect();
 		}
+		
 		$this->driver->createMailbox($name);
 		$this->mailboxes = null;
 		return $this->getMailbox($name);
@@ -120,6 +128,7 @@ class Connection
 		if (!$this->connected) {
 			$this->connect();
 		}
+		
 		$this->driver->renameMailbox($from, $to);
 		$this->mailboxes = null;
 		return $this->getMailbox($to);
@@ -135,6 +144,7 @@ class Connection
 		if (!$this->connected) {
 			$this->connect();
 		}
+		
 		$this->driver->deleteMailbox($name);
 		$this->mailboxes = null;
 	}
@@ -149,6 +159,7 @@ class Connection
 		if (!$this->connected) {
 			$this->connect();
 		}
+		
 		$this->driver->switchMailbox($name);
 		return $this->getMailbox($name);
 	}
@@ -162,6 +173,7 @@ class Connection
 		if (!$this->connected) {
 			$this->connect();
 		}
+		
 		$this->mailboxes = [];
 		foreach ($this->driver->getMailboxes() as $name) {
 			$this->mailboxes[$name] = new Mailbox($this, $name);

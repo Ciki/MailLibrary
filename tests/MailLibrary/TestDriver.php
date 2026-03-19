@@ -5,6 +5,8 @@ declare(strict_types=1);
 /**
  * @author Tomáš Blatný
  */
+use DateTime;
+use DateTimeInterface;
 use greeny\MailLibrary\Attachment;
 use greeny\MailLibrary\DriverException;
 use greeny\MailLibrary\Drivers\IDriver;
@@ -14,6 +16,9 @@ use greeny\MailLibrary\Structures\IStructure;
 
 class TestDriver implements IDriver
 {
+	/**
+	 * @var array<string, string>
+	 */
 	protected static array $filterTable = [
 		Mail::ANSWERED => '%bANSWERED',
 		Mail::BCC => 'BCC "%s"',
@@ -36,6 +41,9 @@ class TestDriver implements IDriver
 		Mail::TO => 'TO "%s"',
 	];
 
+	/**
+	 * @var string[]
+	 */
 	protected array $mailboxes = ['x'];
 
 
@@ -91,6 +99,10 @@ class TestDriver implements IDriver
 	}
 
 
+	/**
+	 * @param array<int, array{key: string, value: string|int|DateTimeInterface|bool|null}> $filters
+	 * @return int[]
+	 */
 	public function getMailIds(
 		array $filters,
 		int $limit = 0,
@@ -101,11 +113,12 @@ class TestDriver implements IDriver
 		if ($filters !== []) {
 			return [1];
 		}
+		
 		return [1, 2];
 	}
 
 
-	public function checkFilter(string $key, mixed $value = null): void
+	public function checkFilter(string $key, string|int|DateTimeInterface|bool|null $value = null): void
 	{
 		if (!in_array($key, array_keys(self::$filterTable), true)) {
 			throw new DriverException("Invalid filter key '{$key}'.");
@@ -130,11 +143,14 @@ class TestDriver implements IDriver
 	}
 
 
+	/**
+	 * @return array<string, string|\greeny\MailLibrary\ContactList>
+	 */
 	public function getHeaders(int $mailId): array
 	{
 		return [
 			'name' => md5((string) $mailId),
-			'id' => $mailId,
+			'id' => (string) $mailId,
 		];
 	}
 
@@ -145,12 +161,18 @@ class TestDriver implements IDriver
 	}
 
 
+	/**
+	 * @param array<int, array<string, string|int>> $data
+	 */
 	public function getBody(int $mailId, array $data): string
 	{
 		return str_repeat((string) $mailId, 10);
 	}
 
 
+	/**
+	 * @return array<string, bool>
+	 */
 	public function getFlags(int $mailId): array
 	{
 		return [];

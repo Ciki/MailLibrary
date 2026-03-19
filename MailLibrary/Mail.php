@@ -49,10 +49,16 @@ class Mail
 	public const int ORDER_CC = SORTCC;
 	public const int ORDER_SIZE = SORTSIZE;
 
+	/**
+	 * @var array<string, string|ContactList>|null
+	 */
 	protected ?array $headers = null;
 
 	protected ?IStructure $structure = null;
 
+	/**
+	 * @var array<string, bool>|null
+	 */
 	protected ?array $flags = null;
 
 
@@ -60,7 +66,8 @@ class Mail
 		protected Connection $connection,
 		protected Mailbox $mailbox,
 		protected int $id
-	) {}
+	) {
+	}
 
 
 	/**
@@ -71,6 +78,7 @@ class Mail
 		if ($this->headers === null) {
 			$this->initializeHeaders();
 		}
+		
 		$key = $this->normalizeHeaderName($this->lowerCamelCaseToHeaderName($name));
 		return isset($this->headers[$key]);
 	}
@@ -100,13 +108,14 @@ class Mail
 
 
 	/**
-	 * @return array of string|ContactList
+	 * @return array<string, string|ContactList>
 	 */
 	public function getHeaders(): array
 	{
 		if ($this->headers === null) {
 			$this->initializeHeaders();
 		}
+		
 		return $this->headers;
 	}
 
@@ -116,6 +125,7 @@ class Mail
 		if ($this->headers === null) {
 			$this->initializeHeaders();
 		}
+		
 		$index = $this->normalizeHeaderName($name);
 		return $this->headers[$index] ?? null;
 	}
@@ -129,11 +139,13 @@ class Mail
 			$contacts = $from->getContactsObjects();
 			return count($contacts) ? $contacts[0] : null;
 		}
+		
 		return null;
 	}
 
 
 	/**
+	 * @param string[] $headers
 	 * @return Contact[]|null
 	 */
 	public function getRecipients(array $headers = ['to']): ?array
@@ -162,6 +174,7 @@ class Mail
 		if (!$this->structure instanceof \greeny\MailLibrary\Structures\IStructure) {
 			$this->initializeStructure();
 		}
+		
 		return $this->structure->getBody();
 	}
 
@@ -171,6 +184,7 @@ class Mail
 		if (!$this->structure instanceof \greeny\MailLibrary\Structures\IStructure) {
 			$this->initializeStructure();
 		}
+		
 		return $this->structure->getHtmlBody();
 	}
 
@@ -180,6 +194,7 @@ class Mail
 		if (!$this->structure instanceof \greeny\MailLibrary\Structures\IStructure) {
 			$this->initializeStructure();
 		}
+		
 		return $this->structure->getTextBody();
 	}
 
@@ -192,19 +207,27 @@ class Mail
 		if (!$this->structure instanceof \greeny\MailLibrary\Structures\IStructure) {
 			$this->initializeStructure();
 		}
+		
 		return $this->structure->getAttachments();
 	}
 
 
+	/**
+	 * @return array<string, bool>
+	 */
 	public function getFlags(): array
 	{
 		if ($this->flags === null) {
 			$this->initializeFlags();
 		}
+		
 		return $this->flags;
 	}
 
 
+	/**
+	 * @param array<string, bool> $flags
+	 */
 	public function setFlags(array $flags, bool $autoFlush = false): void
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
@@ -295,7 +318,7 @@ class Mail
 		// todo: use something like this instead http://stackoverflow.com/a/1993772
 		$dashedName = lcfirst((string) preg_replace_callback(
 			'~-.~',
-			fn(array $matches) => ucfirst(substr((string) $matches[0], 1)),
+			fn (array $matches): string => ucfirst(substr((string) $matches[0], 1)),
 			$camelCasedName
 		));
 
