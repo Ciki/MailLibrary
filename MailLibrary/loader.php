@@ -24,7 +24,7 @@ spl_autoload_register(function (string $type): void {
 		'greeny\maillibrary\extensions\maillibraryextension' => 'Extensions/MailLibraryExtension.php',
 	];
 
-	$type = ltrim(strtolower((string) $type), '\\'); // PHP namespace bug #49143
+	$type = ltrim(strtolower($type), '\\'); // PHP namespace bug #49143
 
 	if (isset($paths[$type])) {
 		require_once __DIR__ . '/' . $paths[$type];

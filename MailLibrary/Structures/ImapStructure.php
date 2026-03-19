@@ -14,29 +14,23 @@ use greeny\MailLibrary\Mailbox;
 
 class ImapStructure implements IStructure
 {
-	/**
-	 * @type int
-	 */
-	public const TYPE_TEXT = 0;
-	public const TYPE_MULTIPART = 1;
-	public const TYPE_MESSAGE = 2;
-	public const TYPE_APPLICATION = 3;
-	public const TYPE_AUDIO = 4;
-	public const TYPE_IMAGE = 5;
-	public const TYPE_VIDEO = 6;
-	public const TYPE_MODEL = 7;
-	public const TYPE_OTHER = 8;
-	public const TYPE_UNKNOWN = 9;
+	public const int TYPE_TEXT = 0;
+	public const int TYPE_MULTIPART = 1;
+	public const int TYPE_MESSAGE = 2;
+	public const int TYPE_APPLICATION = 3;
+	public const int TYPE_AUDIO = 4;
+	public const int TYPE_IMAGE = 5;
+	public const int TYPE_VIDEO = 6;
+	public const int TYPE_MODEL = 7;
+	public const int TYPE_OTHER = 8;
+	public const int TYPE_UNKNOWN = 9;
 
-	/**
-	 * @type int
-	 */
-	public const ENCODING_7BIT = 0;
-	public const ENCODING_8BIT = 1;
-	public const ENCODING_BINARY = 2;
-	public const ENCODING_BASE64 = 3;
-	public const ENCODING_QUOTED_PRINTABLE = 4;
-	public const ENCODING_OTHER = 5;
+	public const int ENCODING_7BIT = 0;
+	public const int ENCODING_8BIT = 1;
+	public const int ENCODING_BINARY = 2;
+	public const int ENCODING_BASE64 = 3;
+	public const int ENCODING_QUOTED_PRINTABLE = 4;
+	public const int ENCODING_OTHER = 5;
 
 	protected static array $typeTable = [
 		self::TYPE_TEXT => 'text',

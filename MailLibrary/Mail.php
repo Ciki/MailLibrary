@@ -13,41 +13,41 @@ use Nette\Utils\Strings;
 
 class Mail
 {
-	public const ANSWERED = 'ANSWERED';
-	public const BCC = 'BCC';
-	public const BEFORE = 'BEFORE';
-	public const BODY = 'BODY';
-	public const CC = 'CC';
-	public const DELETED = 'DELETED';
-	public const FLAGGED = 'FLAGGED';
-	public const FROM = 'FROM';
-	public const KEYWORD = 'KEYWORD';
-	public const NEW_MESSAGES = 'NEW';
-	public const NOT_KEYWORD = 'UNKEYWORD';
-	public const OLD_MESSAGES = 'OLD';
-	public const ON = 'ON';
-	public const RECENT = 'RECENT';
-	public const SEEN = 'SEEN';
-	public const SINCE = 'SINCE';
-	public const SUBJECT = 'SUBJECT';
-	public const TEXT = 'TEXT';
-	public const TO = 'TO';
+	public const string ANSWERED = 'ANSWERED';
+	public const string BCC = 'BCC';
+	public const string BEFORE = 'BEFORE';
+	public const string BODY = 'BODY';
+	public const string CC = 'CC';
+	public const string DELETED = 'DELETED';
+	public const string FLAGGED = 'FLAGGED';
+	public const string FROM = 'FROM';
+	public const string KEYWORD = 'KEYWORD';
+	public const string NEW_MESSAGES = 'NEW';
+	public const string NOT_KEYWORD = 'UNKEYWORD';
+	public const string OLD_MESSAGES = 'OLD';
+	public const string ON = 'ON';
+	public const string RECENT = 'RECENT';
+	public const string SEEN = 'SEEN';
+	public const string SINCE = 'SINCE';
+	public const string SUBJECT = 'SUBJECT';
+	public const string TEXT = 'TEXT';
+	public const string TO = 'TO';
 
 	// flags
-	public const FLAG_ANSWERED = '\\ANSWERED';
-	public const FLAG_DELETED = '\\DELETED';
-	public const FLAG_DRAFT = '\\DRAFT';
-	public const FLAG_FLAGGED = '\\FLAGGED';
-	public const FLAG_SEEN = '\\SEEN';
+	public const string FLAG_ANSWERED = '\\ANSWERED';
+	public const string FLAG_DELETED = '\\DELETED';
+	public const string FLAG_DRAFT = '\\DRAFT';
+	public const string FLAG_FLAGGED = '\\FLAGGED';
+	public const string FLAG_SEEN = '\\SEEN';
 
 	// orders
-	public const ORDER_DATE = SORTDATE;
-	public const ORDER_ARRIVAL = SORTARRIVAL;
-	public const ORDER_FROM = SORTFROM;
-	public const ORDER_SUBJECT = SORTSUBJECT;
-	public const ORDER_TO = SORTTO;
-	public const ORDER_CC = SORTCC;
-	public const ORDER_SIZE = SORTSIZE;
+	public const int ORDER_DATE = SORTDATE;
+	public const int ORDER_ARRIVAL = SORTARRIVAL;
+	public const int ORDER_FROM = SORTFROM;
+	public const int ORDER_SUBJECT = SORTSUBJECT;
+	public const int ORDER_TO = SORTTO;
+	public const int ORDER_CC = SORTCC;
+	public const int ORDER_SIZE = SORTSIZE;
 
 	protected ?array $headers = null;
 

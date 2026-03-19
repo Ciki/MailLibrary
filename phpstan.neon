@@ -9,7 +9,7 @@ parameters:
 		- MailLibrary
 		- tests
 	type_coverage:
-		constant: 0
+		constant: 100
 		property: 100
 		param: 100
 		return: 100

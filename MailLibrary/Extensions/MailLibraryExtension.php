@@ -14,6 +14,7 @@ use Nette\Schema\Schema;
 
 class MailLibraryExtension extends CompilerExtension
 {
+	#[\Override]
 	public function getConfigSchema(): Schema
 	{
 		return Expect::structure([

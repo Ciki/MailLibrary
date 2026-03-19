@@ -20,7 +20,7 @@ use Nette\Utils\Strings;
 
 class ImapDriver implements IDriver
 {
-	protected \IMAP\Connection|false $resource = false;
+	protected Connection|false $resource = false;
 
 	protected string $server;
 
@@ -441,7 +441,7 @@ class ImapDriver implements IDriver
 	public function sanitizeContactHeader(string $headerValue): string
 	{
 		if (str_contains($headerValue, ',') && !str_contains($headerValue, '"') && str_contains($headerValue, '<')) {
-			$headerValue = (string) preg_replace('/^([^<]+)<([^>]+)>$/u', '"$1" <$2>', $headerValue);
+			return (string) preg_replace('/^([^<]+)<([^>]+)>$/u', '"$1" <$2>', $headerValue);
 		}
 
 		return $headerValue;
