@@ -1,0 +1,12 @@
+includes:
+	- vendor/phpstan/phpstan-nette/extension.neon
+	- vendor/phpstan/phpstan-nette/rules.neon
+	- vendor/tomasvotruba/type-coverage/config/extension.neon
+
+parameters:
+	level: 9
+	paths:
+		- MailLibrary
+		- tests
+	ignoreErrors:
+		- '#^Cannot cast mixed to (string|int|float|bool)\.$#'

@@ -21,9 +21,25 @@
         "nette/utils": "^4.1"
     },
     "require-dev": {
-        "nette/tester": "@dev"
+        "nette/tester": "^2.5",
+        "symplify/easy-coding-standard": "13.0",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-nette": "2.0",
+        "tomasvotruba/type-coverage": "2.0.0",
+        "rector/rector": "dev-main",
+        "nette/di": "^3.2"
+    },
+    "suggest": {
+        "nette/di": "Allows using the library directly as a Nette Framework extension"
     },
     "scripts": {
-        "test": "tester tests -p php"
-    }
+        "phpstan": "vendor/bin/phpstan analyse --ansi",
+        "ecs": "vendor/bin/ecs check --ansi",
+        "ecs-fix": "vendor/bin/ecs check --fix --ansi",
+        "rector": "vendor/bin/rector process --dry-run --ansi",
+        "rector-fix": "vendor/bin/rector process --ansi",
+        "test": "vendor/bin/tester tests -s"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
