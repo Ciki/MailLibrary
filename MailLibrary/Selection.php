@@ -140,6 +140,8 @@ class Selection implements ArrayAccess, Countable, Iterator
 			$this->fetchMails();
 		}
 		
+		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after fetchMails().
+		assert(is_array($this->mails));
 		return count($this->mails);
 	}
 
@@ -155,6 +157,8 @@ class Selection implements ArrayAccess, Countable, Iterator
 			$this->fetchMails();
 		}
 		
+		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after fetchMails().
+		assert(is_array($this->mails));
 		return $this->mails;
 	}
 
@@ -165,6 +169,8 @@ class Selection implements ArrayAccess, Countable, Iterator
 			$this->fetchMails();
 		}
 		
+		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after fetchMails().
+		assert(is_array($this->mails));
 		return isset($this->mails[$offset]);
 	}
 
@@ -178,6 +184,8 @@ class Selection implements ArrayAccess, Countable, Iterator
 			$this->fetchMails();
 		}
 		
+		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after fetchMails().
+		assert(is_array($this->mails));
 		if (isset($this->mails[$offset])) {
 			return $this->mails[$offset];
 		}
@@ -215,6 +223,9 @@ class Selection implements ArrayAccess, Countable, Iterator
 
 	public function current(): Mail
 	{
+		// Assert to satisfy static analysis: iterators normally call rewind() (which triggers fetchMails()) first.
+		// Risk: manual call to current() before any fetch operation can fail with an assertion error.
+		assert(is_array($this->mails));
 		return $this->mails[$this->mailIndexes[$this->iterator]];
 	}
 
@@ -243,6 +254,8 @@ class Selection implements ArrayAccess, Countable, Iterator
 			$this->fetchMails();
 		}
 		
+		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after fetchMails().
+		assert(is_array($this->mails));
 		$this->iterator = 0;
 	}
 

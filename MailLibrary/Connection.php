@@ -81,6 +81,8 @@ class Connection
 			$this->initializeMailboxes();
 		}
 		
+		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after initializeMailboxes().
+		assert(is_array($this->mailboxes));
 		return $this->mailboxes;
 	}
 

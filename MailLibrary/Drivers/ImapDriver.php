@@ -263,7 +263,7 @@ class ImapDriver implements IDriver
 		// normalize headers
 		foreach ($lines as $line) {
 			$firstCharacter = mb_substr($line, 0, 1, 'UTF-8'); // todo: correct assumption that string must be UTF-8 encoded?
-			if (preg_match('/[\pZ\pC]/u', $firstCharacter) === 1) { // search for UTF-8 whitespaces
+			if ($lastHeader !== null && preg_match('/[\pZ\pC]/u', $firstCharacter) === 1) { // search for UTF-8 whitespaces
 				$headers[$lastHeader] .= ' ' . Strings::trim($line);
 			} else {
 				$parts = explode(':', $line);
@@ -360,22 +360,22 @@ class ImapDriver implements IDriver
 		foreach ($data as $part) {
 			$dataMessage = ($part['id'] === '0') ? @imap_body($this->getResource(), $mailId, FT_UID | FT_PEEK) : @imap_fetchbody($this->getResource(), $mailId, (string) $part['id'], FT_UID | FT_PEEK);
 			if ($dataMessage === false) {
-				throw new DriverException('Cannot read given message part - ' . error_get_last()['message']);
+				$lastError = error_get_last();
+				throw new DriverException('Cannot read given message part - ' . ($lastError['message'] ?? 'unknown error'));
 			}
 
-			$encoding = $part['encoding'];
+			$dataMessage = (string) $dataMessage;
+			$encoding = (int) $part['encoding'];
 			if ($encoding === ImapStructure::ENCODING_BASE64) {
 				$dataMessage = base64_decode($dataMessage, true);
 			} elseif ($encoding === ImapStructure::ENCODING_QUOTED_PRINTABLE) {
 				$dataMessage = quoted_printable_decode($dataMessage);
 			}
 
-			// todo: other encodings?
-
 			$body[] = $dataMessage;
 		}
 
-		return implode('\n\n', $body);
+		return implode("\n\n", $body);
 	}
 
 

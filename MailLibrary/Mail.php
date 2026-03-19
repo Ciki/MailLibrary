@@ -116,6 +116,8 @@ class Mail
 			$this->initializeHeaders();
 		}
 		
+		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after initializeHeaders().
+		assert(is_array($this->headers));
 		return $this->headers;
 	}
 
@@ -172,30 +174,36 @@ class Mail
 
 	public function getBody(): string
 	{
-		if (!$this->structure instanceof \greeny\MailLibrary\Structures\IStructure) {
+		if (!$this->structure instanceof IStructure) {
 			$this->initializeStructure();
 		}
 		
+		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after initializeStructure().
+		assert($this->structure instanceof IStructure);
 		return $this->structure->getBody();
 	}
 
 
 	public function getHtmlBody(): string
 	{
-		if (!$this->structure instanceof \greeny\MailLibrary\Structures\IStructure) {
+		if (!$this->structure instanceof IStructure) {
 			$this->initializeStructure();
 		}
 		
+		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after initializeStructure().
+		assert($this->structure instanceof IStructure);
 		return $this->structure->getHtmlBody();
 	}
 
 
 	public function getTextBody(): string
 	{
-		if (!$this->structure instanceof \greeny\MailLibrary\Structures\IStructure) {
+		if (!$this->structure instanceof IStructure) {
 			$this->initializeStructure();
 		}
 		
+		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after initializeStructure().
+		assert($this->structure instanceof IStructure);
 		return $this->structure->getTextBody();
 	}
 
@@ -205,10 +213,12 @@ class Mail
 	 */
 	public function getAttachments(): array
 	{
-		if (!$this->structure instanceof \greeny\MailLibrary\Structures\IStructure) {
+		if (!$this->structure instanceof IStructure) {
 			$this->initializeStructure();
 		}
 		
+		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after initializeStructure().
+		assert($this->structure instanceof IStructure);
 		return $this->structure->getAttachments();
 	}
 
@@ -222,6 +232,8 @@ class Mail
 			$this->initializeFlags();
 		}
 		
+		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after initializeFlags().
+		assert(is_array($this->flags));
 		return $this->flags;
 	}
 
