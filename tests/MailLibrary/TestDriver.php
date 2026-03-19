@@ -133,7 +133,7 @@ class TestDriver implements IDriver
 	public function getHeaders(int $mailId): array
 	{
 		return [
-			'name' => md5($mailId),
+			'name' => md5((string) $mailId),
 			'id' => $mailId,
 		];
 	}
@@ -147,7 +147,7 @@ class TestDriver implements IDriver
 
 	public function getBody(int $mailId, array $data): string
 	{
-		return str_repeat($mailId, 10);
+		return str_repeat((string) $mailId, 10);
 	}
 
 

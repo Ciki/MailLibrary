@@ -31,7 +31,9 @@ class MailLibraryExtension extends CompilerExtension
 
 	public function loadConfiguration(): void
 	{
-		$config = $this->getConfig()->imap;
+		/** @var \stdClass $config */
+		$config = $this->getConfig();
+		$imap = $config->imap;
 		$builder = $this->getContainerBuilder();
 
 		$builder->addDefinition($this->prefix('connection'))
@@ -39,11 +41,11 @@ class MailLibraryExtension extends CompilerExtension
 
 		$builder->addDefinition($this->prefix('imap'))
 			->setFactory('greeny\\MailLibrary\\Drivers\\ImapDriver', [
-				$config->username,
-				$config->password,
-				$config->host,
-				$config->port,
-				$config->ssl,
+				$imap->username,
+				$imap->password,
+				$imap->host,
+				$imap->port,
+				$imap->ssl,
 			]);
 	}
 }

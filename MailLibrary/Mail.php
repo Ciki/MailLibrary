@@ -123,7 +123,7 @@ class Mail
 
 	public function getSender(): ?Contact
 	{
-		/** @var ContactList $from */
+		/** @var ContactList|null $from */
 		$from = $this->getHeader('from');
 		if ($from) {
 			$contacts = $from->getContactsObjects();
@@ -140,7 +140,7 @@ class Mail
 	{
 		$ret = [];
 		foreach ($headers as $hName) {
-			/** @var ContactList $header */
+			/** @var ContactList|null $header */
 			$header = $this->getHeader($hName);
 			if ($header) {
 				$ret = array_merge($ret, $header->getContactsObjects());

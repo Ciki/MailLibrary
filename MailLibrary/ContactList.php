@@ -81,7 +81,7 @@ class ContactList implements Iterator, Countable, \Stringable
 	public function valid(): bool
 	{
 		$key = key($this->builtContacts);
-		return $key !== null && $key !== false;
+		return $key !== null;
 	}
 
 

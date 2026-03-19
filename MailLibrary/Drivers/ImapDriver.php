@@ -387,11 +387,9 @@ class ImapDriver implements IDriver
 	public function setFlag(int $mailId, string $flag, bool $value): void
 	{
 		if ($value) {
-			if (!imap_setflag_full($this->resource, (string) $mailId, $flag, ST_UID)) {
-				throw new DriverException("Cannot set flag '{$flag}': " . imap_last_error());
-			}
-		} elseif (!imap_clearflag_full($this->resource, (string) $mailId, $flag, ST_UID)) {
-			throw new DriverException("Cannot unset flag '{$flag}': " . imap_last_error());
+			imap_setflag_full($this->resource, (string) $mailId, $flag, ST_UID);
+		} else {
+			imap_clearflag_full($this->resource, (string) $mailId, $flag, ST_UID);
 		}
 	}
 
@@ -426,9 +424,7 @@ class ImapDriver implements IDriver
 	 */
 	public function deleteMail(int $mailId): void
 	{
-		if (!imap_delete($this->resource, (string) $mailId, FT_UID)) {
-			throw new DriverException('Cannot delete mail: ' . imap_last_error());
-		}
+		imap_delete($this->resource, (string) $mailId, FT_UID);
 	}
 
 
