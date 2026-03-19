@@ -47,29 +47,27 @@ class ImapStructure implements IStructure
 		self::TYPE_OTHER => 'other',
 		self::TYPE_UNKNOWN => 'other',
 	];
-	protected ImapDriver $driver;
-	protected int $id;
 	protected array $htmlBodyIds = [];
+    
 	protected array $textBodyIds = [];
+    
 	protected array $attachmentsIds = [];
+    
 	protected ?string $htmlBody = null;
+    
 	protected ?string $textBody = null;
 
 	/** @var ?Attachment[] */
 	protected ?array $attachments = null;
-	protected Mailbox $mailbox;
 
 
-	public function __construct(ImapDriver $driver, object $structure, int $mailId, Mailbox $mailbox)
+	public function __construct(protected ImapDriver $driver, object $structure, protected int $id, protected Mailbox $mailbox)
 	{
-		$this->driver = $driver;
-		$this->id = $mailId;
-		$this->mailbox = $mailbox;
 		if (!isset($structure->parts)) {
 			$this->addStructurePart($structure, '0');
 		} else {
-			foreach ((array) $structure->parts as $id => $part) {
-				$this->addStructurePart($part, (string) ($id + 1));
+			foreach ((array) $structure->parts as $this->id => $part) {
+				$this->addStructurePart($part, (string) ($this->id + 1));
 			}
 		}
 	}
@@ -86,9 +84,8 @@ class ImapStructure implements IStructure
 		if ($this->htmlBody === null) {
 			$this->driver->switchMailbox($this->mailbox->getName());
 			return $this->htmlBody = $this->driver->getBody($this->id, $this->htmlBodyIds);
-		} else {
-			return $this->htmlBody;
 		}
+        return $this->htmlBody;
 	}
 
 
@@ -97,9 +94,8 @@ class ImapStructure implements IStructure
 		if ($this->textBody === null) {
 			$this->driver->switchMailbox($this->mailbox->getName());
 			return $this->textBody = $this->driver->getBody($this->id, $this->textBodyIds);
-		} else {
-			return $this->textBody;
 		}
+        return $this->textBody;
 	}
 
 
@@ -115,6 +111,7 @@ class ImapStructure implements IStructure
 				$this->attachments[] = new Attachment($attachmentData['name'], $this->driver->getBody($this->id, [$attachmentData]), $attachmentData['type']);
 			}
 		}
+        
 		return $this->attachments;
 	}
 
@@ -122,39 +119,40 @@ class ImapStructure implements IStructure
 	protected function addStructurePart(object $structure, string $partId)
 	{
 		$type = $structure->type;
-		$encoding = isset($structure->encoding) ? $structure->encoding : 'UTF-8';
+		$encoding = $structure->encoding ?? 'UTF-8';
 		$subtype = $structure->ifsubtype ? $structure->subtype : 'PLAIN';
 
 		$parameters = [];
 		if ($structure->ifparameters) {
 			foreach ($structure->parameters as $parameter) {
-				$parameters[strtolower($parameter->attribute)] = $parameter->value;
+				$parameters[strtolower((string) $parameter->attribute)] = $parameter->value;
 			}
 		}
+        
 		if ($structure->ifdparameters) {
 			foreach ($structure->dparameters as $parameter) {
-				$parameters[strtolower($parameter->attribute)] = $parameter->value;
+				$parameters[strtolower((string) $parameter->attribute)] = $parameter->value;
 			}
 		}
 
 		if (isset($parameters['filename']) || isset($parameters['name'])) {
-			$this->attachmentsIds[] = [
+            $this->attachmentsIds[] = [
 				'id' => $partId,
 				'encoding' => $encoding,
-				'name' => imap_utf8(isset($parameters['filename']) ? $parameters['filename'] : $parameters['name']),
+				'name' => imap_utf8($parameters['filename'] ?? $parameters['name']),
 				'type' => self::$typeTable[$type] . '/' . $subtype,
 			];
-		} else if ($type === self::TYPE_TEXT) {
-			if ($subtype === 'HTML') {
-				$this->htmlBodyIds[] = ['id' => $partId, 'encoding' => $encoding];
-			} else if ($subtype === 'PLAIN') {
-				$this->textBodyIds[] = ['id' => $partId, 'encoding' => $encoding];
-			}
-		}
+        } elseif ($type === self::TYPE_TEXT) {
+            if ($subtype === 'HTML') {
+                $this->htmlBodyIds[] = ['id' => $partId, 'encoding' => $encoding];
+            } elseif ($subtype === 'PLAIN') {
+                $this->textBodyIds[] = ['id' => $partId, 'encoding' => $encoding];
+            }
+        }
 
 		if (isset($structure->parts)) {
 			foreach ((array) $structure->parts as $id => $part) {
-				$this->addStructurePart($part, (string) ($partId . '.' . ($id + 1)));
+				$this->addStructurePart($part, $partId . '.' . ($id + 1));
 			}
 		}
 	}

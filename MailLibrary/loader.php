@@ -6,9 +6,9 @@
 
 declare(strict_types=1);
 
-require_once "exceptions.php";
+require_once __DIR__ . "/exceptions.php";
 
-spl_autoload_register(function ($type) {
+spl_autoload_register(function ($type): void {
 	static $paths = [
 		'greeny\maillibrary\connection' => 'Connection.php',
 		'greeny\maillibrary\mailbox' => 'Mailbox.php',
@@ -24,7 +24,7 @@ spl_autoload_register(function ($type) {
 		'greeny\maillibrary\extensions\maillibraryextension' => 'Extensions/MailLibraryExtension.php',
 	];
 
-	$type = ltrim(strtolower($type), '\\'); // PHP namespace bug #49143
+	$type = ltrim(strtolower((string) $type), '\\'); // PHP namespace bug #49143
 
 	if (isset($paths[$type])) {
 		require_once __DIR__ . '/' . $paths[$type];

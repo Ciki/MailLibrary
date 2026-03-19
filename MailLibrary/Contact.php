@@ -9,24 +9,23 @@ declare(strict_types=1);
 
 namespace greeny\MailLibrary;
 
-class Contact
+class Contact implements \Stringable
 {
 
 	public function __construct(
-		private ?string $mailbox,
-		private ?string $host,
-		private ?string $personal,
-		private ?string $adl,
+		private readonly ?string $mailbox,
+		private readonly ?string $host,
+		private readonly ?string $personal,
+		private readonly ?string $adl,
 	) {
 	}
 
 
 	public function __toString(): string
 	{
-		$address = $this->getName() ? "\"" . $this->getName() . "\" " : "";
+		$address = $this->getName() ? '"' . $this->getName() . '" ' : "";
 		$address .= $this->getAdl() ? $this->getAdl() . ":" : "";
-		$address .= "<" . $this->getEmail() . ">";
-		return $address;
+		return $address . ("<" . $this->getEmail() . ">");
 	}
 
 

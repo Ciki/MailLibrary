@@ -11,10 +11,11 @@ namespace greeny\MailLibrary;
 use Iterator;
 use Countable;
 
-class ContactList implements Iterator, Countable
+class ContactList implements Iterator, Countable, \Stringable
 {
 	/** @var Contact[] */
 	protected array $contacts = [];
+    
 	protected array $builtContacts = [];
 
 
@@ -34,6 +35,7 @@ class ContactList implements Iterator, Countable
 		foreach ($this->contacts as $contact) {
 			$return[] = $contact->__toString();
 		}
+        
 		$this->builtContacts = $return;
 	}
 

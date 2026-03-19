@@ -14,10 +14,6 @@ use Iterator;
 
 class Selection implements ArrayAccess, Countable, Iterator
 {
-	protected Connection $connection;
-
-	protected Mailbox $mailbox;
-
 	protected ?array $mails = null;
 
 	protected int $iterator = 0;
@@ -36,11 +32,9 @@ class Selection implements ArrayAccess, Countable, Iterator
 	protected string $orderType = 'ASC';
 
 
-	public function __construct(Connection $connection, Mailbox $mailbox)
-	{
-		$this->connection = $connection;
-		$this->mailbox = $mailbox;
-	}
+	public function __construct(protected Connection $connection, protected Mailbox $mailbox)
+    {
+    }
 
 
 	/**
@@ -62,8 +56,9 @@ class Selection implements ArrayAccess, Countable, Iterator
 	public function limit(int $limit): self
 	{
 		if ($limit < 0) {
-			throw new InvalidFilterValueException("Limit must be bigger or equal to 0, '$limit' given.");
+			throw new InvalidFilterValueException("Limit must be bigger or equal to 0, '{$limit}' given.");
 		}
+        
 		$this->limit = $limit;
 		return $this;
 	}
@@ -77,8 +72,9 @@ class Selection implements ArrayAccess, Countable, Iterator
 	public function offset(int $offset): self
 	{
 		if ($offset < 0) {
-			throw new InvalidFilterValueException("Offset must be bigger or equal to 0, '$offset' given.");
+			throw new InvalidFilterValueException("Offset must be bigger or equal to 0, '{$offset}' given.");
 		}
+        
 		$this->offset = $offset;
 		return $this;
 	}
@@ -90,11 +86,13 @@ class Selection implements ArrayAccess, Countable, Iterator
 	public function page(int $page, int $itemsPerPage): self
 	{
 		if ($page <= 0) {
-			throw new InvalidFilterValueException("Page must be at least 1, '$page' given.");
+			throw new InvalidFilterValueException("Page must be at least 1, '{$page}' given.");
 		}
+        
 		if ($itemsPerPage <= 0) {
-			throw new InvalidFilterValueException("Items per page must be at least 1, '$itemsPerPage' given.");
+			throw new InvalidFilterValueException("Items per page must be at least 1, '{$itemsPerPage}' given.");
 		}
+        
 		$this->offset(($page - 1) * $itemsPerPage);
 		$this->limit($itemsPerPage);
 		return $this;
@@ -104,9 +102,10 @@ class Selection implements ArrayAccess, Countable, Iterator
 	public function order(int $by, string $type = 'ASC'): self
 	{
 		$type = strtoupper($type);
-		if (!in_array($type, ['ASC', 'DESC'])) {
-			throw new InvalidFilterValueException("Sort type must be ASC or DESC, '$type' given.");
+		if (!in_array($type, ['ASC', 'DESC'], true)) {
+			throw new InvalidFilterValueException("Sort type must be ASC or DESC, '{$type}' given.");
 		}
+        
 		$this->orderBy = $by;
 		$this->orderType = $type;
 		return $this;
@@ -115,7 +114,9 @@ class Selection implements ArrayAccess, Countable, Iterator
 
 	public function countMails(): int
 	{
-		$this->mails !== null || $this->fetchMails();
+		if ($this->mails === null) {
+            $this->fetchMails();
+        }
 		return count($this->mails);
 	}
 
@@ -127,7 +128,9 @@ class Selection implements ArrayAccess, Countable, Iterator
 	 */
 	public function fetchAll(): array
 	{
-		$this->mails !== null || $this->fetchMails();
+		if ($this->mails === null) {
+            $this->fetchMails();
+        }
 		return $this->mails;
 	}
 
@@ -154,7 +157,9 @@ class Selection implements ArrayAccess, Countable, Iterator
 
 	public function offsetExists(mixed $offset): bool
 	{
-		$this->mails !== null || $this->fetchMails();
+		if ($this->mails === null) {
+            $this->fetchMails();
+        }
 		return isset($this->mails[$offset]);
 	}
 
@@ -164,12 +169,13 @@ class Selection implements ArrayAccess, Countable, Iterator
 	 */
 	public function offsetGet(mixed $offset): Mail
 	{
-		$this->mails !== null || $this->fetchMails();
+		if ($this->mails === null) {
+            $this->fetchMails();
+        }
 		if (isset($this->mails[$offset])) {
 			return $this->mails[$offset];
-		} else {
-			throw new MailboxException("There is no email with id '$offset'.");
 		}
+        throw new MailboxException("There is no email with id '{$offset}'.");
 	}
 
 
@@ -227,7 +233,9 @@ class Selection implements ArrayAccess, Countable, Iterator
 
 	public function rewind(): void
 	{
-		$this->mails !== null || $this->fetchMails();
+		if ($this->mails === null) {
+            $this->fetchMails();
+        }
 		$this->iterator = 0;
 	}
 }

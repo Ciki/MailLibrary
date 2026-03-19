@@ -12,7 +12,7 @@ use greeny\MailLibrary\Structures\IStructure;
 
 class TestDriver implements IDriver
 {
-	protected static array $filterTable = array(
+	protected static array $filterTable = [
 		Mail::ANSWERED => '%bANSWERED',
 		Mail::BCC => 'BCC "%s"',
 		Mail::BEFORE => 'BEFORE "%d"',
@@ -32,8 +32,9 @@ class TestDriver implements IDriver
 		Mail::SUBJECT => 'SUBJECT "%s"',
 		Mail::TEXT => 'TEXT "%s"',
 		Mail::TO => 'TO "%s"',
-	);
-	protected array $mailboxes = array('x');
+	];
+    
+	protected array $mailboxes = ['x'];
 
 
 	public function connect(): void
@@ -95,44 +96,44 @@ class TestDriver implements IDriver
 		int $orderBy = Mail::ORDER_DATE,
 		string $orderType = 'ASC'
 	): array {
-		if (count($filters)) {
-			return array(1);
-		} else {
-			return array(1, 2);
+		if ($filters !== []) {
+			return [1];
 		}
+        return [1, 2];
 	}
 
 
 	public function checkFilter(string $key, mixed $value = null): void
 	{
 		if (!in_array($key, array_keys(self::$filterTable))) {
-			throw new DriverException("Invalid filter key '$key'.");
+			throw new DriverException("Invalid filter key '{$key}'.");
 		}
+        
 		$filtered = self::$filterTable[$key];
-		if (strpos($filtered, '%s') !== FALSE) {
-			if (!is_string($value)) {
-				throw new DriverException("Invalid value type for filter '$key', expected string, got " . gettype($value) . ".");
+		if (str_contains((string) $filtered, '%s')) {
+            if (!is_string($value)) {
+				throw new DriverException("Invalid value type for filter '{$key}', expected string, got " . gettype($value) . ".");
 			}
-		} else if (strpos($filtered, '%d') !== FALSE) {
-			if (!($value instanceof DateTime) && !is_int($value) && !(is_string($value) && strtotime($value))) {
-				throw new DriverException("Invalid value type for filter '$key', expected DateTime or timestamp, or textual representation of date, got " . gettype($value) . ".");
+        } elseif (str_contains((string) $filtered, '%d')) {
+            if (!($value instanceof DateTime) && !is_int($value) && !(is_string($value) && strtotime($value))) {
+				throw new DriverException("Invalid value type for filter '{$key}', expected DateTime or timestamp, or textual representation of date, got " . gettype($value) . ".");
 			}
-		} else if (strpos($filtered, '%b') !== FALSE) {
-			if (!is_bool($value)) {
-				throw new DriverException("Invalid value type for filter '$key', expected bool, got " . gettype($value) . ".");
+        } elseif (str_contains((string) $filtered, '%b')) {
+            if (!is_bool($value)) {
+				throw new DriverException("Invalid value type for filter '{$key}', expected bool, got " . gettype($value) . ".");
 			}
-		} else if ($value !== null) {
-			throw new DriverException("Cannot assign value to filter '$key'.");
-		}
+        } elseif ($value !== null) {
+            throw new DriverException("Cannot assign value to filter '{$key}'.");
+        }
 	}
 
 
 	public function getHeaders(int $mailId): array
 	{
-		return array(
+		return [
 			'name' => md5($mailId),
 			'id' => $mailId,
-		);
+		];
 	}
 
 

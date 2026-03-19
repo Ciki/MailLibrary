@@ -13,14 +13,14 @@ use greeny\MailLibrary\Attachment;
 interface IStructure
 {
 
-	function getBody(): string;
+	public function getBody(): string;
 
-	function getHtmlBody(): string;
+	public function getHtmlBody(): string;
 
-	function getTextBody(): string;
+	public function getTextBody(): string;
 
 	/**
 	 * @return Attachment[]
 	 */
-	function getAttachments(): array;
+	public function getAttachments(): array;
 }

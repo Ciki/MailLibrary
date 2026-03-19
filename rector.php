@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Rector\CodingStyle\Rector\Encapsed\EncapsedStringsToSprintfRector;
 use Rector\Config\RectorConfig;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
@@ -19,5 +20,9 @@ return static function (RectorConfig $rectorConfig): void {
         SetList::CODING_STYLE,
         SetList::TYPE_DECLARATION,
         SetList::EARLY_RETURN,
+    ]);
+
+    $rectorConfig->skip([
+        EncapsedStringsToSprintfRector::class,
     ]);
 };
