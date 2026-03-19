@@ -73,6 +73,9 @@ class ImapStructure implements IStructure
 	protected ?array $attachments = null;
 
 
+	/**
+	 * @param \stdClass $structure
+	 */
 	public function __construct(
 		protected ImapDriver $driver,
 		object $structure,
@@ -134,22 +137,25 @@ class ImapStructure implements IStructure
 	}
 
 
+	/**
+	 * @param \stdClass $structure
+	 */
 	protected function addStructurePart(object $structure, string $partId): void
 	{
-		$type = $structure->type;
-		$encoding = $structure->encoding ?? 'UTF-8';
-		$subtype = $structure->ifsubtype ? $structure->subtype : 'PLAIN';
+		$type = (int) $structure->type;
+		$encoding = (int) ($structure->encoding ?? self::ENCODING_OTHER);
+		$subtype = !empty($structure->ifsubtype) ? (string) $structure->subtype : 'PLAIN';
 
 		$parameters = [];
-		if ($structure->ifparameters) {
-			foreach ($structure->parameters as $parameter) {
-				$parameters[strtolower((string) $parameter->attribute)] = $parameter->value;
+		if (!empty($structure->ifparameters) && isset($structure->parameters)) {
+			foreach ((array) $structure->parameters as $parameter) {
+				$parameters[strtolower((string) $parameter->attribute)] = (string) $parameter->value;
 			}
 		}
 
-		if ($structure->ifdparameters) {
-			foreach ($structure->dparameters as $parameter) {
-				$parameters[strtolower((string) $parameter->attribute)] = $parameter->value;
+		if (!empty($structure->ifdparameters) && isset($structure->dparameters)) {
+			foreach ((array) $structure->dparameters as $parameter) {
+				$parameters[strtolower((string) $parameter->attribute)] = (string) $parameter->value;
 			}
 		}
 

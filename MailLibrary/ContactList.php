@@ -72,9 +72,10 @@ class ContactList implements Iterator, Countable, \Stringable
 	}
 
 
-	public function current(): mixed
+	public function current(): string
 	{
-		return current($this->builtContacts);
+		$current = current($this->builtContacts);
+		return $current === false ? '' : $current;
 	}
 
 
@@ -84,9 +85,9 @@ class ContactList implements Iterator, Countable, \Stringable
 	}
 
 
-	public function key(): mixed
+	public function key(): int
 	{
-		return key($this->builtContacts);
+		return (int) key($this->builtContacts);
 	}
 
 

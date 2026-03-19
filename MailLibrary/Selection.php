@@ -131,6 +131,9 @@ class Selection implements ArrayAccess, Countable, Iterator
 	}
 
 
+	/**
+	 * @return int<0, max>
+	 */
 	public function countMails(): int
 	{
 		if ($this->mails === null) {
@@ -201,6 +204,9 @@ class Selection implements ArrayAccess, Countable, Iterator
 	}
 
 
+	/**
+	 * @return int<0, max>
+	 */
 	public function count(): int
 	{
 		return $this->countMails();

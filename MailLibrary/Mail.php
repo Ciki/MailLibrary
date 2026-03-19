@@ -165,7 +165,8 @@ class Mail
 
 	public function getSubject(): ?string
 	{
-		return $this->getHeader('subject');
+		$subject = $this->getHeader('subject');
+		return is_string($subject) ? $subject : null;
 	}
 
 

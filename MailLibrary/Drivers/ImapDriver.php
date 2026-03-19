@@ -88,6 +88,17 @@ class ImapDriver implements IDriver
 	}
 
 
+	protected function getResource(): Connection
+	{
+		if (!$this->resource instanceof Connection) {
+			$this->connect();
+		}
+
+		assert($this->resource instanceof Connection);
+		return $this->resource;
+	}
+
+
 	/**
 	 * Flushes changes to server
 	 *
@@ -95,7 +106,7 @@ class ImapDriver implements IDriver
 	 */
 	public function flush(): void
 	{
-		imap_expunge($this->resource);
+		imap_expunge($this->getResource());
 	}
 
 
@@ -108,7 +119,7 @@ class ImapDriver implements IDriver
 	public function getMailboxes(): array
 	{
 		$mailboxes = [];
-		$foo = imap_list($this->resource, $this->server, '*');
+		$foo = imap_list($this->getResource(), $this->server, '*');
 		if (!$foo) {
 			throw new DriverException('Cannot get mailboxes from server: ' . imap_last_error());
 		}
@@ -128,7 +139,7 @@ class ImapDriver implements IDriver
 	 */
 	public function createMailbox(string $name): void
 	{
-		if (!imap_createmailbox($this->resource, $this->server . $name)) {
+		if (!imap_createmailbox($this->getResource(), $this->server . $name)) {
 			throw new DriverException("Cannot create mailbox '{$name}': " . imap_last_error());
 		}
 	}
@@ -141,7 +152,7 @@ class ImapDriver implements IDriver
 	 */
 	public function renameMailbox(string $from, string $to): void
 	{
-		if (!imap_renamemailbox($this->resource, $this->server . $from, $this->server . $to)) {
+		if (!imap_renamemailbox($this->getResource(), $this->server . $from, $this->server . $to)) {
 			throw new DriverException("Cannot rename mailbox from '{$from}' to '{$to}': " . imap_last_error());
 		}
 	}
@@ -154,7 +165,7 @@ class ImapDriver implements IDriver
 	 */
 	public function deleteMailbox(string $name): void
 	{
-		if (!imap_deletemailbox($this->resource, $this->server . $name)) {
+		if (!imap_deletemailbox($this->getResource(), $this->server . $name)) {
 			throw new DriverException("Cannot delete mailbox '{$name}': " . imap_last_error());
 		}
 	}
@@ -169,7 +180,7 @@ class ImapDriver implements IDriver
 	{
 		if ($name !== $this->currentMailbox) {
 			$this->flush();
-			if (!imap_reopen($this->resource, $this->server . $name)) {
+			if (!imap_reopen($this->getResource(), $this->server . $name)) {
 				throw new DriverException("Cannot switch to mailbox '{$name}': " . imap_last_error());
 			}
 
@@ -196,7 +207,7 @@ class ImapDriver implements IDriver
 
 		$reverseOrder = $orderType === 'ASC';
 
-		if (!is_array($ids = imap_sort($this->resource, $orderBy, $reverseOrder, SE_UID | SE_NOPREFETCH, $filter, 'UTF-8'))) {
+		if (!is_array($ids = imap_sort($this->getResource(), $orderBy, $reverseOrder, SE_UID | SE_NOPREFETCH, $filter, 'UTF-8'))) {
 			throw new DriverException('Cannot get mails: ' . imap_last_error());
 		}
 
@@ -221,7 +232,7 @@ class ImapDriver implements IDriver
 				throw new DriverException("Invalid value type for filter '{$key}', expected string, got " . gettype($value) . '.');
 			}
 		} elseif (str_contains((string) $filtered, '%d')) {
-			if (!($value instanceof DateTime) && !is_int($value) && !strtotime((string) $value)) {
+			if (!($value instanceof DateTimeInterface) && !is_int($value) && (!is_string($value) || strtotime($value) === false)) {
 				throw new DriverException("Invalid value type for filter '{$key}', expected DateTime or timestamp, or textual representation of date, got " . gettype($value) . '.');
 			}
 		} elseif (str_contains((string) $filtered, '%b')) {
@@ -240,7 +251,11 @@ class ImapDriver implements IDriver
 	 */
 	public function getHeaders(int $mailId): array
 	{
-		$raw = imap_fetchheader($this->resource, $mailId, FT_UID);
+		$raw = imap_fetchheader($this->getResource(), $mailId, FT_UID);
+		if ($raw === false) {
+			throw new DriverException("Cannot get headers for mail '{$mailId}': " . imap_last_error());
+		}
+
 		$lines = explode("\n", Strings::fixEncoding($raw));
 		$headers = [];
 		$lastHeader = null;
@@ -267,7 +282,7 @@ class ImapDriver implements IDriver
 			}
 
 			if (strtolower($key) === 'subject') {
-				$decoded = imap_mime_header_decode($header);
+				$decoded = (array) imap_mime_header_decode($header);
 				$text = '';
 				foreach ($decoded as $part) {
 					if ($part->charset !== 'UTF-8' && $part->charset !== 'default') {
@@ -282,10 +297,20 @@ class ImapDriver implements IDriver
 						$text .= $part->text;
 					}
 				}
-				
+
 				$headers[$key] = trim($text);
 			} elseif (in_array(strtolower($key), self::$contactHeaders, true)) {
-				$headerValue = $this->sanitizeContactHeader(imap_utf8(trim($header)));
+				$decoded = (array) imap_mime_header_decode(trim($header));
+				$decodedHeaderValue = '';
+				foreach ($decoded as $part) {
+					if ($part->charset === 'default') {
+						$decodedHeaderValue .= $part->text;
+					} else {
+						$decodedHeaderValue .= mb_convert_encoding((string) $part->text, 'UTF-8', (string) $part->charset);
+					}
+				}
+
+				$headerValue = $this->sanitizeContactHeader($decodedHeaderValue);
 				$contacts = imap_rfc822_parse_adrlist($headerValue, 'UNKNOWN_HOST');
 				$list = new ContactList();
 				foreach ($contacts as $contact) {
@@ -313,7 +338,13 @@ class ImapDriver implements IDriver
 	 */
 	public function getStructure(int $mailId, Mailbox $mailbox): IStructure
 	{
-		return new ImapStructure($this, imap_fetchstructure($this->resource, $mailId, FT_UID), $mailId, $mailbox);
+		$resource = $this->getResource();
+		$structure = imap_fetchstructure($resource, $mailId, FT_UID);
+		if (!$structure instanceof \stdClass) {
+			throw new DriverException("Cannot get structure for mail '{$mailId}': " . imap_last_error());
+		}
+
+		return new ImapStructure($this, $structure, $mailId, $mailbox);
 	}
 
 
@@ -327,7 +358,7 @@ class ImapDriver implements IDriver
 	{
 		$body = [];
 		foreach ($data as $part) {
-			$dataMessage = ($part['id'] === '0') ? @imap_body($this->resource, $mailId, FT_UID | FT_PEEK) : @imap_fetchbody($this->resource, $mailId, $part['id'], FT_UID | FT_PEEK);
+			$dataMessage = ($part['id'] === '0') ? @imap_body($this->getResource(), $mailId, FT_UID | FT_PEEK) : @imap_fetchbody($this->getResource(), $mailId, (string) $part['id'], FT_UID | FT_PEEK);
 			if ($dataMessage === false) {
 				throw new DriverException('Cannot read given message part - ' . error_get_last()['message']);
 			}
@@ -354,9 +385,16 @@ class ImapDriver implements IDriver
 	 */
 	public function getFlags(int $mailId): array
 	{
-		$data = imap_fetch_overview($this->resource, (string) $mailId, FT_UID);
-		reset($data);
-		$data = current($data);
+		$data = imap_fetch_overview($this->getResource(), (string) $mailId, FT_UID);
+		if (!is_array($data)) {
+			throw new DriverException("Cannot get flags for mail '{$mailId}': " . imap_last_error());
+		}
+
+		$overview = reset($data);
+		if (!$overview instanceof \stdClass) {
+			throw new DriverException("Cannot get flags for mail '{$mailId}': " . imap_last_error());
+		}
+
 		$return = [
 			Mail::FLAG_ANSWERED => false,
 			Mail::FLAG_DELETED => false,
@@ -364,23 +402,23 @@ class ImapDriver implements IDriver
 			Mail::FLAG_FLAGGED => false,
 			Mail::FLAG_SEEN => false,
 		];
-		if ($data->answered) {
+		if ($overview->answered) {
 			$return[Mail::FLAG_ANSWERED] = true;
 		}
 
-		if ($data->deleted) {
+		if ($overview->deleted) {
 			$return[Mail::FLAG_DELETED] = true;
 		}
 
-		if ($data->draft) {
+		if ($overview->draft) {
 			$return[Mail::FLAG_DRAFT] = true;
 		}
 
-		if ($data->flagged) {
+		if ($overview->flagged) {
 			$return[Mail::FLAG_FLAGGED] = true;
 		}
 
-		if ($data->seen) {
+		if ($overview->seen) {
 			$return[Mail::FLAG_SEEN] = true;
 		}
 
@@ -395,9 +433,9 @@ class ImapDriver implements IDriver
 	public function setFlag(int $mailId, string $flag, bool $value): void
 	{
 		if ($value) {
-			imap_setflag_full($this->resource, (string) $mailId, $flag, ST_UID);
+			imap_setflag_full($this->getResource(), (string) $mailId, $flag, ST_UID);
 		} else {
-			imap_clearflag_full($this->resource, (string) $mailId, $flag, ST_UID);
+			imap_clearflag_full($this->getResource(), (string) $mailId, $flag, ST_UID);
 		}
 	}
 
@@ -408,7 +446,7 @@ class ImapDriver implements IDriver
 	 */
 	public function copyMail(int $mailId, string $toMailbox): void
 	{
-		if (!imap_mail_copy($this->resource, (string) $mailId, /* $this->server . */ $this->encodeMailboxName($toMailbox), CP_UID)) {
+		if (!imap_mail_copy($this->getResource(), (string) $mailId, /* $this->server . */ $this->encodeMailboxName($toMailbox), CP_UID)) {
 			throw new DriverException("Cannot copy mail to mailbox '{$toMailbox}': " . imap_last_error());
 		}
 	}
@@ -420,7 +458,7 @@ class ImapDriver implements IDriver
 	 */
 	public function moveMail(int $mailId, string $toMailbox): void
 	{
-		if (!imap_mail_move($this->resource, (string) $mailId, /* $this->server . */ $this->encodeMailboxName($toMailbox), CP_UID)) {
+		if (!imap_mail_move($this->getResource(), (string) $mailId, /* $this->server . */ $this->encodeMailboxName($toMailbox), CP_UID)) {
 			throw new DriverException("Cannot copy mail to mailbox '{$toMailbox}': " . imap_last_error());
 		}
 	}
@@ -432,7 +470,7 @@ class ImapDriver implements IDriver
 	 */
 	public function deleteMail(int $mailId): void
 	{
-		imap_delete($this->resource, (string) $mailId, FT_UID);
+		imap_delete($this->getResource(), (string) $mailId, FT_UID);
 	}
 
 
@@ -464,12 +502,13 @@ class ImapDriver implements IDriver
 			$value = $filter['value'];
 
 			if (str_contains((string) $key, '%s')) {
-				$data = str_replace('%s', str_replace('"', '', (string) $value), $key);
+				$sValue = $value instanceof DateTimeInterface ? $value->format('d M Y') : (string) $value;
+				$data = str_replace('%s', str_replace('"', '', $sValue), $key);
 			} elseif (str_contains((string) $key, '%d')) {
-				if ($value instanceof DateTime) {
+				if ($value instanceof DateTimeInterface) {
 					$timestamp = $value->getTimestamp();
 				} elseif (is_string($value)) {
-					$timestamp = strtotime($value) ?: Time();
+					$timestamp = strtotime($value) ?: time();
 				} else {
 					$timestamp = (int) $value;
 				}
