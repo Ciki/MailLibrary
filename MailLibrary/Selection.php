@@ -32,9 +32,11 @@ class Selection implements ArrayAccess, Countable, Iterator
 	protected string $orderType = 'ASC';
 
 
-	public function __construct(protected Connection $connection, protected Mailbox $mailbox)
-    {
-    }
+	public function __construct(
+		protected Connection $connection,
+		protected Mailbox $mailbox
+	) {
+	}
 
 
 	/**
@@ -43,7 +45,10 @@ class Selection implements ArrayAccess, Countable, Iterator
 	public function where(string $key, mixed $value = null): self
 	{
 		$this->connection->getDriver()->checkFilter($key, $value);
-		$this->filters[] = ['key' => $key, 'value' => $value];
+		$this->filters[] = [
+			'key' => $key,
+			'value' => $value,
+		];
 		return $this;
 	}
 
@@ -58,7 +63,7 @@ class Selection implements ArrayAccess, Countable, Iterator
 		if ($limit < 0) {
 			throw new InvalidFilterValueException("Limit must be bigger or equal to 0, '{$limit}' given.");
 		}
-        
+
 		$this->limit = $limit;
 		return $this;
 	}
@@ -74,7 +79,7 @@ class Selection implements ArrayAccess, Countable, Iterator
 		if ($offset < 0) {
 			throw new InvalidFilterValueException("Offset must be bigger or equal to 0, '{$offset}' given.");
 		}
-        
+
 		$this->offset = $offset;
 		return $this;
 	}
@@ -88,11 +93,11 @@ class Selection implements ArrayAccess, Countable, Iterator
 		if ($page <= 0) {
 			throw new InvalidFilterValueException("Page must be at least 1, '{$page}' given.");
 		}
-        
+
 		if ($itemsPerPage <= 0) {
 			throw new InvalidFilterValueException("Items per page must be at least 1, '{$itemsPerPage}' given.");
 		}
-        
+
 		$this->offset(($page - 1) * $itemsPerPage);
 		$this->limit($itemsPerPage);
 		return $this;
@@ -105,7 +110,7 @@ class Selection implements ArrayAccess, Countable, Iterator
 		if (!in_array($type, ['ASC', 'DESC'], true)) {
 			throw new InvalidFilterValueException("Sort type must be ASC or DESC, '{$type}' given.");
 		}
-        
+
 		$this->orderBy = $by;
 		$this->orderType = $type;
 		return $this;
@@ -115,8 +120,8 @@ class Selection implements ArrayAccess, Countable, Iterator
 	public function countMails(): int
 	{
 		if ($this->mails === null) {
-            $this->fetchMails();
-        }
+			$this->fetchMails();
+		}
 		return count($this->mails);
 	}
 
@@ -129,37 +134,17 @@ class Selection implements ArrayAccess, Countable, Iterator
 	public function fetchAll(): array
 	{
 		if ($this->mails === null) {
-            $this->fetchMails();
-        }
+			$this->fetchMails();
+		}
 		return $this->mails;
 	}
 
 
-	/**
-	 * Fetches mail ids from server
-	 */
-	protected function fetchMails(): void
-	{
-		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
-		$ids = $this->connection->getDriver()->getMailIds($this->filters, $this->limit, $this->offset, $this->orderBy, $this->orderType);
-		$i = 0;
-		$this->mails = [];
-		$this->iterator = 0;
-		$this->mailIndexes = [];
-		foreach ($ids as $id) {
-			$this->mails[$id] = new Mail($this->connection, $this->mailbox, $id);
-			$this->mailIndexes[$i++] = $id;
-		}
-	}
-
-
-	// INTERFACE ArrayAccess
-
 	public function offsetExists(mixed $offset): bool
 	{
 		if ($this->mails === null) {
-            $this->fetchMails();
-        }
+			$this->fetchMails();
+		}
 		return isset($this->mails[$offset]);
 	}
 
@@ -170,12 +155,12 @@ class Selection implements ArrayAccess, Countable, Iterator
 	public function offsetGet(mixed $offset): Mail
 	{
 		if ($this->mails === null) {
-            $this->fetchMails();
-        }
+			$this->fetchMails();
+		}
 		if (isset($this->mails[$offset])) {
 			return $this->mails[$offset];
 		}
-        throw new MailboxException("There is no email with id '{$offset}'.");
+		throw new MailboxException("There is no email with id '{$offset}'.");
 	}
 
 
@@ -184,7 +169,7 @@ class Selection implements ArrayAccess, Countable, Iterator
 	 */
 	public function offsetSet(mixed $offset, mixed $value): void
 	{
-		throw new MailboxException("Cannot set a readonly mail.");
+		throw new MailboxException('Cannot set a readonly mail.');
 	}
 
 
@@ -193,19 +178,15 @@ class Selection implements ArrayAccess, Countable, Iterator
 	 */
 	public function offsetUnset(mixed $offset): void
 	{
-		throw new MailboxException("Cannot unset a readonly mail.");
+		throw new MailboxException('Cannot unset a readonly mail.');
 	}
 
-
-	// INTERFACE Countable
 
 	public function count(): int
 	{
 		return $this->countMails();
 	}
 
-
-	// INTERFACE Iterator
 
 	public function current(): Mail
 	{
@@ -234,8 +215,26 @@ class Selection implements ArrayAccess, Countable, Iterator
 	public function rewind(): void
 	{
 		if ($this->mails === null) {
-            $this->fetchMails();
-        }
+			$this->fetchMails();
+		}
 		$this->iterator = 0;
+	}
+
+
+	/**
+	 * Fetches mail ids from server
+	 */
+	protected function fetchMails(): void
+	{
+		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
+		$ids = $this->connection->getDriver()->getMailIds($this->filters, $this->limit, $this->offset, $this->orderBy, $this->orderType);
+		$i = 0;
+		$this->mails = [];
+		$this->iterator = 0;
+		$this->mailIndexes = [];
+		foreach ($ids as $id) {
+			$this->mails[$id] = new Mail($this->connection, $this->mailbox, $id);
+			$this->mailIndexes[$i++] = $id;
+		}
 	}
 }

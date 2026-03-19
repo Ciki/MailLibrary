@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . "/exceptions.php";
+require_once __DIR__ . '/exceptions.php';
 
 spl_autoload_register(function ($type): void {
 	static $paths = [

@@ -14,26 +14,29 @@ use greeny\MailLibrary\Mailbox;
 
 class ImapStructure implements IStructure
 {
-	/** @type int */
-	const TYPE_TEXT = 0;
-	const TYPE_MULTIPART = 1;
-	const TYPE_MESSAGE = 2;
-	const TYPE_APPLICATION = 3;
-	const TYPE_AUDIO = 4;
-	const TYPE_IMAGE = 5;
-	const TYPE_VIDEO = 6;
-	const TYPE_MODEL = 7;
-	const TYPE_OTHER = 8;
-	const TYPE_UNKNOWN = 9;
+	/**
+	 * @type int
+	 */
+	public const TYPE_TEXT = 0;
+	public const TYPE_MULTIPART = 1;
+	public const TYPE_MESSAGE = 2;
+	public const TYPE_APPLICATION = 3;
+	public const TYPE_AUDIO = 4;
+	public const TYPE_IMAGE = 5;
+	public const TYPE_VIDEO = 6;
+	public const TYPE_MODEL = 7;
+	public const TYPE_OTHER = 8;
+	public const TYPE_UNKNOWN = 9;
 
-	/** @type int */
-	const ENCODING_7BIT = 0;
-	const ENCODING_8BIT = 1;
-	const ENCODING_BINARY = 2;
-	const ENCODING_BASE64 = 3;
-	const ENCODING_QUOTED_PRINTABLE = 4;
-	const ENCODING_OTHER = 5;
-
+	/**
+	 * @type int
+	 */
+	public const ENCODING_7BIT = 0;
+	public const ENCODING_8BIT = 1;
+	public const ENCODING_BINARY = 2;
+	public const ENCODING_BASE64 = 3;
+	public const ENCODING_QUOTED_PRINTABLE = 4;
+	public const ENCODING_OTHER = 5;
 
 	protected static array $typeTable = [
 		self::TYPE_TEXT => 'text',
@@ -47,22 +50,29 @@ class ImapStructure implements IStructure
 		self::TYPE_OTHER => 'other',
 		self::TYPE_UNKNOWN => 'other',
 	];
+
 	protected array $htmlBodyIds = [];
-    
+
 	protected array $textBodyIds = [];
-    
+
 	protected array $attachmentsIds = [];
-    
+
 	protected ?string $htmlBody = null;
-    
+
 	protected ?string $textBody = null;
 
-	/** @var ?Attachment[] */
+	/**
+	 * @var ?Attachment[]
+	 */
 	protected ?array $attachments = null;
 
 
-	public function __construct(protected ImapDriver $driver, object $structure, protected int $id, protected Mailbox $mailbox)
-	{
+	public function __construct(
+		protected ImapDriver $driver,
+		object $structure,
+		protected int $id,
+		protected Mailbox $mailbox
+	) {
 		if (!isset($structure->parts)) {
 			$this->addStructurePart($structure, '0');
 		} else {
@@ -85,7 +95,7 @@ class ImapStructure implements IStructure
 			$this->driver->switchMailbox($this->mailbox->getName());
 			return $this->htmlBody = $this->driver->getBody($this->id, $this->htmlBodyIds);
 		}
-        return $this->htmlBody;
+		return $this->htmlBody;
 	}
 
 
@@ -95,7 +105,7 @@ class ImapStructure implements IStructure
 			$this->driver->switchMailbox($this->mailbox->getName());
 			return $this->textBody = $this->driver->getBody($this->id, $this->textBodyIds);
 		}
-        return $this->textBody;
+		return $this->textBody;
 	}
 
 
@@ -111,7 +121,7 @@ class ImapStructure implements IStructure
 				$this->attachments[] = new Attachment($attachmentData['name'], $this->driver->getBody($this->id, [$attachmentData]), $attachmentData['type']);
 			}
 		}
-        
+
 		return $this->attachments;
 	}
 
@@ -128,7 +138,7 @@ class ImapStructure implements IStructure
 				$parameters[strtolower((string) $parameter->attribute)] = $parameter->value;
 			}
 		}
-        
+
 		if ($structure->ifdparameters) {
 			foreach ($structure->dparameters as $parameter) {
 				$parameters[strtolower((string) $parameter->attribute)] = $parameter->value;
@@ -136,19 +146,25 @@ class ImapStructure implements IStructure
 		}
 
 		if (isset($parameters['filename']) || isset($parameters['name'])) {
-            $this->attachmentsIds[] = [
+			$this->attachmentsIds[] = [
 				'id' => $partId,
 				'encoding' => $encoding,
 				'name' => imap_utf8($parameters['filename'] ?? $parameters['name']),
 				'type' => self::$typeTable[$type] . '/' . $subtype,
 			];
-        } elseif ($type === self::TYPE_TEXT) {
-            if ($subtype === 'HTML') {
-                $this->htmlBodyIds[] = ['id' => $partId, 'encoding' => $encoding];
-            } elseif ($subtype === 'PLAIN') {
-                $this->textBodyIds[] = ['id' => $partId, 'encoding' => $encoding];
-            }
-        }
+		} elseif ($type === self::TYPE_TEXT) {
+			if ($subtype === 'HTML') {
+				$this->htmlBodyIds[] = [
+					'id' => $partId,
+					'encoding' => $encoding,
+				];
+			} elseif ($subtype === 'PLAIN') {
+				$this->textBodyIds[] = [
+					'id' => $partId,
+					'encoding' => $encoding,
+				];
+			}
+		}
 
 		if (isset($structure->parts)) {
 			foreach ((array) $structure->parts as $id => $part) {

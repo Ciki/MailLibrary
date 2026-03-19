@@ -15,18 +15,19 @@ use greeny\MailLibrary\Structures\IStructure;
 
 interface IDriver
 {
-
 	/**
 	 * Connects to server
 	 * @throws DriverException
 	 */
 	public function connect(): void;
 
+
 	/**
 	 * Flushes changes to server
 	 * @throws DriverException
 	 */
 	public function flush(): void;
+
 
 	/**
 	 * Gets all mailboxes
@@ -35,11 +36,13 @@ interface IDriver
 	 */
 	public function getMailboxes(): array;
 
+
 	/**
 	 * Creates new mailbox
 	 * @throws DriverException
 	 */
 	public function createMailbox(string $name): void;
+
 
 	/**
 	 * Renames mailbox
@@ -47,17 +50,20 @@ interface IDriver
 	 */
 	public function renameMailbox(string $from, string $to): void;
 
+
 	/**
 	 * Deletes mailbox
 	 * @throws DriverException
 	 */
 	public function deleteMailbox(string $name): void;
 
+
 	/**
 	 * Switches current mailbox
 	 * @throws DriverException
 	 */
 	public function switchMailbox(string $name): void;
+
 
 	/**
 	 * Finds UIDs of mails by filter
@@ -71,11 +77,13 @@ interface IDriver
 		string $orderType = 'ASC'
 	): array;
 
+
 	/**
 	 * Checks if filter is applicable for this driver
 	 * @throws DriverException
 	 */
 	public function checkFilter(string $key, mixed $value = null): void;
+
 
 	/**
 	 * Gets mail headers
@@ -83,20 +91,24 @@ interface IDriver
 	 */
 	public function getHeaders(int $mailId): array;
 
+
 	/**
 	 * Creates structure for mail
 	 */
 	public function getStructure(int $mailId, Mailbox $mailbox): IStructure;
+
 
 	/**
 	 * Gets part of body
 	 */
 	public function getBody(int $mailId, array $data): string;
 
+
 	/**
 	 * Gets flags for mail
 	 */
 	public function getFlags(int $mailId): array;
+
 
 	/**
 	 * Sets one flag for mail
@@ -104,17 +116,20 @@ interface IDriver
 	 */
 	public function setFlag(int $mailId, string $flag, bool $value): void;
 
+
 	/**
 	 * Copies mail to another mailbox
 	 * @throws DriverException
 	 */
 	public function copyMail(int $mailId, string $toMailbox): void;
 
+
 	/**
 	 * Moves mail to another mailbox
 	 * @throws DriverException
 	 */
 	public function moveMail(int $mailId, string $toMailbox): void;
+
 
 	/**
 	 * Deletes mail

@@ -13,39 +13,41 @@ use Nette\Utils\Strings;
 
 class Mail
 {
-	const ANSWERED = 'ANSWERED';
-	const BCC = 'BCC';
-	const BEFORE = 'BEFORE';
-	const BODY = 'BODY';
-	const CC = 'CC';
-	const DELETED = 'DELETED';
-	const FLAGGED = 'FLAGGED';
-	const FROM = 'FROM';
-	const KEYWORD = 'KEYWORD';
-	const NEW_MESSAGES = 'NEW';
-	const NOT_KEYWORD = 'UNKEYWORD';
-	const OLD_MESSAGES = 'OLD';
-	const ON = 'ON';
-	const RECENT = 'RECENT';
-	const SEEN = 'SEEN';
-	const SINCE = 'SINCE';
-	const SUBJECT = 'SUBJECT';
-	const TEXT = 'TEXT';
-	const TO = 'TO';
+	public const ANSWERED = 'ANSWERED';
+	public const BCC = 'BCC';
+	public const BEFORE = 'BEFORE';
+	public const BODY = 'BODY';
+	public const CC = 'CC';
+	public const DELETED = 'DELETED';
+	public const FLAGGED = 'FLAGGED';
+	public const FROM = 'FROM';
+	public const KEYWORD = 'KEYWORD';
+	public const NEW_MESSAGES = 'NEW';
+	public const NOT_KEYWORD = 'UNKEYWORD';
+	public const OLD_MESSAGES = 'OLD';
+	public const ON = 'ON';
+	public const RECENT = 'RECENT';
+	public const SEEN = 'SEEN';
+	public const SINCE = 'SINCE';
+	public const SUBJECT = 'SUBJECT';
+	public const TEXT = 'TEXT';
+	public const TO = 'TO';
 
-	const FLAG_ANSWERED = "\\ANSWERED";
-	const FLAG_DELETED = "\\DELETED";
-	const FLAG_DRAFT = "\\DRAFT";
-	const FLAG_FLAGGED = "\\FLAGGED";
-	const FLAG_SEEN = "\\SEEN";
+	// flags
+	public const FLAG_ANSWERED = '\\ANSWERED';
+	public const FLAG_DELETED = '\\DELETED';
+	public const FLAG_DRAFT = '\\DRAFT';
+	public const FLAG_FLAGGED = '\\FLAGGED';
+	public const FLAG_SEEN = '\\SEEN';
 
-	const ORDER_DATE = SORTDATE;
-	const ORDER_ARRIVAL = SORTARRIVAL;
-	const ORDER_FROM = SORTFROM;
-	const ORDER_SUBJECT = SORTSUBJECT;
-	const ORDER_TO = SORTTO;
-	const ORDER_CC = SORTCC;
-	const ORDER_SIZE = SORTSIZE;
+	// orders
+	public const ORDER_DATE = SORTDATE;
+	public const ORDER_ARRIVAL = SORTARRIVAL;
+	public const ORDER_FROM = SORTFROM;
+	public const ORDER_SUBJECT = SORTSUBJECT;
+	public const ORDER_TO = SORTTO;
+	public const ORDER_CC = SORTCC;
+	public const ORDER_SIZE = SORTSIZE;
 
 	protected ?array $headers = null;
 
@@ -54,9 +56,11 @@ class Mail
 	protected ?array $flags = null;
 
 
-	public function __construct(protected Connection $connection, protected Mailbox $mailbox, protected int $id)
-    {
-    }
+	public function __construct(
+		protected Connection $connection,
+		protected Mailbox $mailbox,
+		protected int $id
+	) {}
 
 
 	/**
@@ -65,8 +69,8 @@ class Mail
 	public function __isset(string $name): bool
 	{
 		if ($this->headers === null) {
-            $this->initializeHeaders();
-        }
+			$this->initializeHeaders();
+		}
 		$key = $this->normalizeHeaderName($this->lowerCamelCaseToHeaderName($name));
 		return isset($this->headers[$key]);
 	}
@@ -101,8 +105,8 @@ class Mail
 	public function getHeaders(): array
 	{
 		if ($this->headers === null) {
-            $this->initializeHeaders();
-        }
+			$this->initializeHeaders();
+		}
 		return $this->headers;
 	}
 
@@ -110,8 +114,8 @@ class Mail
 	public function getHeader(string $name): null|string|ContactList
 	{
 		if ($this->headers === null) {
-            $this->initializeHeaders();
-        }
+			$this->initializeHeaders();
+		}
 		$index = $this->normalizeHeaderName($name);
 		return $this->headers[$index] ?? null;
 	}
@@ -123,9 +127,9 @@ class Mail
 		$from = $this->getHeader('from');
 		if ($from) {
 			$contacts = $from->getContactsObjects();
-			return (count($contacts) ? $contacts[0] : null);
+			return count($contacts) ? $contacts[0] : null;
 		}
-        return null;
+		return null;
 	}
 
 
@@ -142,7 +146,7 @@ class Mail
 				$ret = array_merge($ret, $header->getContactsObjects());
 			}
 		}
-        
+
 		return count($ret) ? $ret : null;
 	}
 
@@ -156,8 +160,8 @@ class Mail
 	public function getBody(): string
 	{
 		if (!$this->structure instanceof \greeny\MailLibrary\Structures\IStructure) {
-            $this->initializeStructure();
-        }
+			$this->initializeStructure();
+		}
 		return $this->structure->getBody();
 	}
 
@@ -165,8 +169,8 @@ class Mail
 	public function getHtmlBody(): string
 	{
 		if (!$this->structure instanceof \greeny\MailLibrary\Structures\IStructure) {
-            $this->initializeStructure();
-        }
+			$this->initializeStructure();
+		}
 		return $this->structure->getHtmlBody();
 	}
 
@@ -174,8 +178,8 @@ class Mail
 	public function getTextBody(): string
 	{
 		if (!$this->structure instanceof \greeny\MailLibrary\Structures\IStructure) {
-            $this->initializeStructure();
-        }
+			$this->initializeStructure();
+		}
 		return $this->structure->getTextBody();
 	}
 
@@ -186,8 +190,8 @@ class Mail
 	public function getAttachments(): array
 	{
 		if (!$this->structure instanceof \greeny\MailLibrary\Structures\IStructure) {
-            $this->initializeStructure();
-        }
+			$this->initializeStructure();
+		}
 		return $this->structure->getAttachments();
 	}
 
@@ -195,8 +199,8 @@ class Mail
 	public function getFlags(): array
 	{
 		if ($this->flags === null) {
-            $this->initializeFlags();
-        }
+			$this->initializeFlags();
+		}
 		return $this->flags;
 	}
 
@@ -204,18 +208,20 @@ class Mail
 	public function setFlags(array $flags, $autoFlush = false): void
 	{
 		$this->connection->getDriver()->switchMailbox($this->mailbox->getName());
-		foreach ([
-			Mail::FLAG_ANSWERED,
-			Mail::FLAG_DELETED,
-			Mail::FLAG_DRAFT,
-			Mail::FLAG_FLAGGED,
-			Mail::FLAG_SEEN,
-		] as $flag) {
+		foreach (
+			[
+				self::FLAG_ANSWERED,
+				self::FLAG_DELETED,
+				self::FLAG_DRAFT,
+				self::FLAG_FLAGGED,
+				self::FLAG_SEEN,
+			] as $flag
+		) {
 			if (isset($flags[$flag])) {
 				$this->connection->getDriver()->setFlag($this->id, $flag, $flags[$flag]);
 			}
 		}
-        
+
 		if ($autoFlush) {
 			$this->connection->getDriver()->flush();
 		}
@@ -268,11 +274,11 @@ class Mail
 
 
 	/**
-     * Formats header name (X-Received-From => x-recieved-from)
-     *
-     * @param string $name Header name (with dashes, valid UTF-8 string)
-     */
-    protected function normalizeHeaderName(string $name): string
+	 * Formats header name (X-Received-From => x-recieved-from)
+	 *
+	 * @param string $name Header name (with dashes, valid UTF-8 string)
+	 */
+	protected function normalizeHeaderName(string $name): string
 	{
 		return Strings::normalize(Strings::lower($name));
 	}
@@ -288,7 +294,7 @@ class Mail
 		// todo: test this
 		// todo: use something like this instead http://stackoverflow.com/a/1993772
 		$dashedName = lcfirst((string) preg_replace_callback(
-			"~-.~",
+			'~-.~',
 			fn($matches) => ucfirst(substr((string) $matches[0], 1)),
 			$camelCasedName
 		));

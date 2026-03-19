@@ -11,7 +11,6 @@ namespace greeny\MailLibrary;
 
 class Contact implements \Stringable
 {
-
 	public function __construct(
 		private readonly ?string $mailbox,
 		private readonly ?string $host,
@@ -23,15 +22,15 @@ class Contact implements \Stringable
 
 	public function __toString(): string
 	{
-		$address = $this->getName() ? '"' . $this->getName() . '" ' : "";
-		$address .= $this->getAdl() ? $this->getAdl() . ":" : "";
-		return $address . ("<" . $this->getEmail() . ">");
+		$address = $this->getName() ? '"' . $this->getName() . '" ' : '';
+		$address .= $this->getAdl() ? $this->getAdl() . ':' : '';
+		return $address . ('<' . $this->getEmail() . '>');
 	}
 
 
 	public function getEmail(): string
 	{
-		return $this->mailbox . "@" . $this->host;
+		return $this->mailbox . '@' . $this->host;
 	}
 
 

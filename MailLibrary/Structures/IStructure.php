@@ -12,12 +12,14 @@ use greeny\MailLibrary\Attachment;
 
 interface IStructure
 {
-
 	public function getBody(): string;
+
 
 	public function getHtmlBody(): string;
 
+
 	public function getTextBody(): string;
+
 
 	/**
 	 * @return Attachment[]

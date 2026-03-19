@@ -14,7 +14,6 @@ use Nette\Schema\Schema;
 
 class MailLibraryExtension extends CompilerExtension
 {
-
 	public function getConfigSchema(): Schema
 	{
 		return Expect::structure([
@@ -24,7 +23,7 @@ class MailLibraryExtension extends CompilerExtension
 				'host' => Expect::string('localhost'),
 				'port' => Expect::int(993),
 				'ssl' => Expect::bool(true),
-			])
+			]),
 		]);
 	}
 

@@ -8,15 +8,23 @@ declare(strict_types=1);
 
 namespace greeny\MailLibrary;
 
-use Iterator;
 use Countable;
+use Iterator;
 
 class ContactList implements Iterator, Countable, \Stringable
 {
-	/** @var Contact[] */
+	/**
+	 * @var Contact[]
+	 */
 	protected array $contacts = [];
-    
+
 	protected array $builtContacts = [];
+
+
+	public function __toString(): string
+	{
+		return implode(', ', $this->builtContacts);
+	}
 
 
 	public function addContact(
@@ -35,7 +43,7 @@ class ContactList implements Iterator, Countable, \Stringable
 		foreach ($this->contacts as $contact) {
 			$return[] = $contact->__toString();
 		}
-        
+
 		$this->builtContacts = $return;
 	}
 
@@ -49,12 +57,6 @@ class ContactList implements Iterator, Countable, \Stringable
 	public function getContactsObjects(): array
 	{
 		return $this->contacts;
-	}
-
-
-	public function __toString(): string
-	{
-		return implode(', ', $this->builtContacts);
 	}
 
 
@@ -79,7 +81,7 @@ class ContactList implements Iterator, Countable, \Stringable
 	public function valid(): bool
 	{
 		$key = key($this->builtContacts);
-		return ($key !== null && $key !== false);
+		return $key !== null && $key !== false;
 	}
 
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * @author Tomáš Blatný
  */
@@ -33,7 +35,7 @@ class TestDriver implements IDriver
 		Mail::TEXT => 'TEXT "%s"',
 		Mail::TO => 'TO "%s"',
 	];
-    
+
 	protected array $mailboxes = ['x'];
 
 
@@ -64,7 +66,7 @@ class TestDriver implements IDriver
 	public function renameMailbox(string $from, string $to): void
 	{
 		foreach ($this->mailboxes as $key => $mailbox) {
-			if ($mailbox == $from) {
+			if ($mailbox === $from) {
 				$this->mailboxes[$key] = $to;
 				return;
 			}
@@ -75,7 +77,7 @@ class TestDriver implements IDriver
 	public function deleteMailbox(string $name): void
 	{
 		foreach ($this->mailboxes as $key => $mailbox) {
-			if ($mailbox == $name) {
+			if ($mailbox === $name) {
 				unset($this->mailboxes[$key]);
 				return;
 			}
@@ -99,32 +101,32 @@ class TestDriver implements IDriver
 		if ($filters !== []) {
 			return [1];
 		}
-        return [1, 2];
+		return [1, 2];
 	}
 
 
 	public function checkFilter(string $key, mixed $value = null): void
 	{
-		if (!in_array($key, array_keys(self::$filterTable))) {
+		if (!in_array($key, array_keys(self::$filterTable), true)) {
 			throw new DriverException("Invalid filter key '{$key}'.");
 		}
-        
+
 		$filtered = self::$filterTable[$key];
 		if (str_contains((string) $filtered, '%s')) {
-            if (!is_string($value)) {
-				throw new DriverException("Invalid value type for filter '{$key}', expected string, got " . gettype($value) . ".");
+			if (!is_string($value)) {
+				throw new DriverException("Invalid value type for filter '{$key}', expected string, got " . gettype($value) . '.');
 			}
-        } elseif (str_contains((string) $filtered, '%d')) {
-            if (!($value instanceof DateTime) && !is_int($value) && !(is_string($value) && strtotime($value))) {
-				throw new DriverException("Invalid value type for filter '{$key}', expected DateTime or timestamp, or textual representation of date, got " . gettype($value) . ".");
+		} elseif (str_contains((string) $filtered, '%d')) {
+			if (!($value instanceof DateTime) && !is_int($value) && !(is_string($value) && strtotime($value))) {
+				throw new DriverException("Invalid value type for filter '{$key}', expected DateTime or timestamp, or textual representation of date, got " . gettype($value) . '.');
 			}
-        } elseif (str_contains((string) $filtered, '%b')) {
-            if (!is_bool($value)) {
-				throw new DriverException("Invalid value type for filter '{$key}', expected bool, got " . gettype($value) . ".");
+		} elseif (str_contains((string) $filtered, '%b')) {
+			if (!is_bool($value)) {
+				throw new DriverException("Invalid value type for filter '{$key}', expected bool, got " . gettype($value) . '.');
 			}
-        } elseif ($value !== null) {
-            throw new DriverException("Cannot assign value to filter '{$key}'.");
-        }
+		} elseif ($value !== null) {
+			throw new DriverException("Cannot assign value to filter '{$key}'.");
+		}
 	}
 
 
@@ -177,13 +179,10 @@ class TestDriver implements IDriver
 	{
 
 	}
-
-
 }
 
 class TestStructure implements IStructure
 {
-
 	public function getBody(): string
 	{
 		return str_repeat('body', 10);
@@ -209,6 +208,4 @@ class TestStructure implements IStructure
 	{
 
 	}
-
-
 }

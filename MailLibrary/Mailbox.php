@@ -10,7 +10,6 @@ namespace greeny\MailLibrary;
 
 class Mailbox
 {
-
 	public function __construct(
 		protected Connection $connection,
 		protected string $name

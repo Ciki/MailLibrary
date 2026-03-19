@@ -10,7 +10,6 @@ namespace greeny\MailLibrary;
 
 class Attachment
 {
-
 	public function __construct(
 		protected string $name,
 		protected string $content,

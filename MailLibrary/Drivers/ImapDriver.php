@@ -20,12 +20,13 @@ use Nette\Utils\Strings;
 
 class ImapDriver implements IDriver
 {
-	protected /*resource (php<8.1) | Connection (php>=8.1)*/ $resource;
-    
+	/*resource (php<8.1) | Connection (php>=8.1)*/
+	protected $resource;
+
 	protected string $server;
-    
+
 	protected ?string $currentMailbox = null;
-    
+
 	protected static array $filterTable = [
 		Mail::ANSWERED => '%bANSWERED',
 		Mail::BCC => 'BCC "%s"',
@@ -47,7 +48,7 @@ class ImapDriver implements IDriver
 		Mail::TEXT => 'TEXT "%s"',
 		Mail::TO => 'TO "%s"',
 	];
-    
+
 	protected static array $contactHeaders = [
 		'to',
 		'from',
@@ -56,8 +57,13 @@ class ImapDriver implements IDriver
 	];
 
 
-	public function __construct(protected string $username, protected string $password, string $host, int $port = 993, bool $ssl = true)
-	{
+	public function __construct(
+		protected string $username,
+		protected string $password,
+		string $host,
+		int $port = 993,
+		bool $ssl = true
+	) {
 		$ssl = $ssl ? '/ssl' : '/novalidate-cert';
 		$this->server = '{' . $host . ':' . $port . '/imap' . $ssl . '}';
 	}
@@ -71,7 +77,7 @@ class ImapDriver implements IDriver
 	public function connect(): void
 	{
 		if (!$this->resource = @imap_open($this->server, $this->username, $this->password, CL_EXPUNGE)) { // @ - to allow throwing exceptions
-			throw new DriverException("Cannot connect to IMAP server: " . imap_last_error());
+			throw new DriverException('Cannot connect to IMAP server: ' . imap_last_error());
 		}
 	}
 
@@ -98,13 +104,13 @@ class ImapDriver implements IDriver
 		$mailboxes = [];
 		$foo = imap_list($this->resource, $this->server, '*');
 		if (!$foo) {
-			throw new DriverException("Cannot get mailboxes from server: " . imap_last_error());
+			throw new DriverException('Cannot get mailboxes from server: ' . imap_last_error());
 		}
-        
+
 		foreach ($foo as $mailbox) {
 			$mailboxes[] = mb_convert_encoding(str_replace($this->server, '', $mailbox), 'UTF8', 'UTF7-IMAP');
 		}
-        
+
 		return $mailboxes;
 	}
 
@@ -160,7 +166,7 @@ class ImapDriver implements IDriver
 			if (!imap_reopen($this->resource, $this->server . $name)) {
 				throw new DriverException("Cannot switch to mailbox '{$name}': " . imap_last_error());
 			}
-            
+
 			$this->currentMailbox = $name;
 		}
 	}
@@ -184,7 +190,7 @@ class ImapDriver implements IDriver
 		$reverseOrder = $orderType === 'ASC';
 
 		if (!is_array($ids = imap_sort($this->resource, $orderBy, $reverseOrder, SE_UID | SE_NOPREFETCH, $filter, 'UTF-8'))) {
-			throw new DriverException("Cannot get mails: " . imap_last_error());
+			throw new DriverException('Cannot get mails: ' . imap_last_error());
 		}
 
 		return $limit === 0 ? $ids : array_slice($ids, $offset, $limit);
@@ -198,26 +204,26 @@ class ImapDriver implements IDriver
 	 */
 	public function checkFilter(string $key, mixed $value = null): void
 	{
-		if (!in_array($key, array_keys(self::$filterTable))) {
+		if (!in_array($key, array_keys(self::$filterTable), true)) {
 			throw new DriverException("Invalid filter key '{$key}'.");
 		}
-        
+
 		$filtered = self::$filterTable[$key];
 		if (str_contains((string) $filtered, '%s')) {
-            if (!is_string($value)) {
-				throw new DriverException("Invalid value type for filter '{$key}', expected string, got " . gettype($value) . ".");
+			if (!is_string($value)) {
+				throw new DriverException("Invalid value type for filter '{$key}', expected string, got " . gettype($value) . '.');
 			}
-        } elseif (str_contains((string) $filtered, '%d')) {
-            if (!($value instanceof DateTime) && !is_int($value) && !strtotime((string) $value)) {
-				throw new DriverException("Invalid value type for filter '{$key}', expected DateTime or timestamp, or textual representation of date, got " . gettype($value) . ".");
+		} elseif (str_contains((string) $filtered, '%d')) {
+			if (!($value instanceof DateTime) && !is_int($value) && !strtotime((string) $value)) {
+				throw new DriverException("Invalid value type for filter '{$key}', expected DateTime or timestamp, or textual representation of date, got " . gettype($value) . '.');
 			}
-        } elseif (str_contains((string) $filtered, '%b')) {
-            if (!is_bool($value)) {
-				throw new DriverException("Invalid value type for filter '{$key}', expected bool, got " . gettype($value) . ".");
+		} elseif (str_contains((string) $filtered, '%b')) {
+			if (!is_bool($value)) {
+				throw new DriverException("Invalid value type for filter '{$key}', expected bool, got " . gettype($value) . '.');
 			}
-        } elseif ($value !== null) {
-            throw new DriverException("Cannot assign value to filter '{$key}'.");
-        }
+		} elseif ($value !== null) {
+			throw new DriverException("Cannot assign value to filter '{$key}'.");
+		}
 	}
 
 
@@ -237,7 +243,7 @@ class ImapDriver implements IDriver
 		foreach ($lines as $line) {
 			$firstCharacter = mb_substr($line, 0, 1, 'UTF-8'); // todo: correct assumption that string must be UTF-8 encoded?
 			if (preg_match('/[\pZ\pC]/u', $firstCharacter) === 1) { // search for UTF-8 whitespaces
-				$headers[$lastHeader] .= " " . Strings::trim($line);
+				$headers[$lastHeader] .= ' ' . Strings::trim($line);
 			} else {
 				$parts = explode(':', $line);
 				$name = Strings::trim($parts[0]);
@@ -253,11 +259,11 @@ class ImapDriver implements IDriver
 				unset($headers[$key]);
 				continue;
 			}
-            
+
 			if (strtolower($key) === 'subject') {
-                $decoded = imap_mime_header_decode($header);
-                $text = '';
-                foreach ($decoded as $part) {
+				$decoded = imap_mime_header_decode($header);
+				$text = '';
+				foreach ($decoded as $part) {
 					if ($part->charset !== 'UTF-8' && $part->charset !== 'default') {
 						try {
 							// throws ValueError since php8.0.0 for non-supported charsets, eg. `windows-1250`
@@ -270,12 +276,12 @@ class ImapDriver implements IDriver
 						$text .= $part->text;
 					}
 				}
-                $headers[$key] = trim($text);
-            } elseif (in_array(strtolower($key), self::$contactHeaders)) {
-                $headerValue = $this->sanitizeContactHeader(imap_utf8(trim($header)));
-                $contacts = imap_rfc822_parse_adrlist($headerValue, 'UNKNOWN_HOST');
-                $list = new ContactList();
-                foreach ($contacts as $contact) {
+				$headers[$key] = trim($text);
+			} elseif (in_array(strtolower($key), self::$contactHeaders, true)) {
+				$headerValue = $this->sanitizeContactHeader(imap_utf8(trim($header)));
+				$contacts = imap_rfc822_parse_adrlist($headerValue, 'UNKNOWN_HOST');
+				$list = new ContactList();
+				foreach ($contacts as $contact) {
 					$list->addContact(
 						$contact->mailbox ?? null,
 						$contact->host ?? null,
@@ -284,13 +290,13 @@ class ImapDriver implements IDriver
 					);
 				}
 
-                $list->build();
-                $headers[$key] = $list;
-            } else {
+				$list->build();
+				$headers[$key] = $list;
+			} else {
 				$headers[$key] = trim(imap_utf8($header));
 			}
 		}
-        
+
 		return $headers;
 	}
 
@@ -317,21 +323,21 @@ class ImapDriver implements IDriver
 			assert(is_array($part));
 			$dataMessage = ($part['id'] === '0') ? @imap_body($this->resource, $mailId, FT_UID | FT_PEEK) : @imap_fetchbody($this->resource, $mailId, $part['id'], FT_UID | FT_PEEK);
 			if ($dataMessage === false) {
-				throw new DriverException("Cannot read given message part - " . error_get_last()["message"]);
+				throw new DriverException('Cannot read given message part - ' . error_get_last()['message']);
 			}
-            
+
 			$encoding = $part['encoding'];
 			if ($encoding === ImapStructure::ENCODING_BASE64) {
-                $dataMessage = base64_decode($dataMessage);
-            } elseif ($encoding === ImapStructure::ENCODING_QUOTED_PRINTABLE) {
-                $dataMessage = quoted_printable_decode($dataMessage);
-            }
+				$dataMessage = base64_decode($dataMessage, true);
+			} elseif ($encoding === ImapStructure::ENCODING_QUOTED_PRINTABLE) {
+				$dataMessage = quoted_printable_decode($dataMessage);
+			}
 
 			// todo: other encodings?
 
 			$body[] = $dataMessage;
 		}
-        
+
 		return implode('\n\n', $body);
 	}
 
@@ -354,23 +360,23 @@ class ImapDriver implements IDriver
 		if ($data->answered) {
 			$return[Mail::FLAG_ANSWERED] = true;
 		}
-        
+
 		if ($data->deleted) {
 			$return[Mail::FLAG_DELETED] = true;
 		}
-        
+
 		if ($data->draft) {
 			$return[Mail::FLAG_DRAFT] = true;
 		}
-        
+
 		if ($data->flagged) {
 			$return[Mail::FLAG_FLAGGED] = true;
 		}
-        
+
 		if ($data->seen) {
 			$return[Mail::FLAG_SEEN] = true;
 		}
-        
+
 		return $return;
 	}
 
@@ -382,12 +388,12 @@ class ImapDriver implements IDriver
 	public function setFlag(int $mailId, string $flag, bool $value): void
 	{
 		if ($value) {
-            if (!imap_setflag_full($this->resource, (string) $mailId, $flag, ST_UID)) {
+			if (!imap_setflag_full($this->resource, (string) $mailId, $flag, ST_UID)) {
 				throw new DriverException("Cannot set flag '{$flag}': " . imap_last_error());
 			}
-        } elseif (!imap_clearflag_full($this->resource, (string) $mailId, $flag, ST_UID)) {
-            throw new DriverException("Cannot unset flag '{$flag}': " . imap_last_error());
-        }
+		} elseif (!imap_clearflag_full($this->resource, (string) $mailId, $flag, ST_UID)) {
+			throw new DriverException("Cannot unset flag '{$flag}': " . imap_last_error());
+		}
 	}
 
 
@@ -422,8 +428,24 @@ class ImapDriver implements IDriver
 	public function deleteMail(int $mailId): void
 	{
 		if (!imap_delete($this->resource, (string) $mailId, FT_UID)) {
-			throw new DriverException("Cannot delete mail: " . imap_last_error());
+			throw new DriverException('Cannot delete mail: ' . imap_last_error());
 		}
+	}
+
+
+	/**
+	 * Sanitizes contact header by quoting display names that contain commas but are not already quoted.
+	 * e.g. "Slovenska sporitelna, a.s. <notifikacie@slspsk>" => ""Slovenska sporitelna, a.s. " <notifikacie@slspsk>"
+	 *
+	 * @internal for testing
+	 */
+	public function sanitizeContactHeader(string $headerValue): string
+	{
+		if (str_contains($headerValue, ',') && !str_contains($headerValue, '"') && str_contains($headerValue, '<')) {
+			$headerValue = (string) preg_replace('/^([^<]+)<([^>]+)>$/u', '"$1" <$2>', $headerValue);
+		}
+
+		return $headerValue;
 	}
 
 
@@ -438,26 +460,26 @@ class ImapDriver implements IDriver
 			$value = $filter['value'];
 
 			if (str_contains((string) $key, '%s')) {
-                $data = str_replace('%s', str_replace('"', '', (string) $value), $key);
-            } elseif (str_contains((string) $key, '%d')) {
-                if ($value instanceof DateTime) {
-                    $timestamp = $value->getTimestamp();
-                } elseif (is_string($value)) {
-                    $timestamp = strtotime($value) ?: Time();
-                } else {
+				$data = str_replace('%s', str_replace('"', '', (string) $value), $key);
+			} elseif (str_contains((string) $key, '%d')) {
+				if ($value instanceof DateTime) {
+					$timestamp = $value->getTimestamp();
+				} elseif (is_string($value)) {
+					$timestamp = strtotime($value) ?: Time();
+				} else {
 					$timestamp = (int) $value;
 				}
 
-                $data = str_replace('%d', date("d M Y", $timestamp), $key);
-            } elseif (str_contains((string) $key, '%b')) {
-                $data = str_replace('%b', ((bool) $value ? '' : 'UN'), $key);
-            } else {
+				$data = str_replace('%d', date('d M Y', $timestamp), $key);
+			} elseif (str_contains((string) $key, '%b')) {
+				$data = str_replace('%b', ((bool) $value ? '' : 'UN'), $key);
+			} else {
 				$data = $key;
 			}
-            
+
 			$return[] = $data;
 		}
-        
+
 		return implode(' ', $return);
 	}
 
@@ -478,21 +500,5 @@ class ImapDriver implements IDriver
 	protected function encodeMailboxName(string $name): string
 	{
 		return mb_convert_encoding($name, 'UTF7-IMAP', 'UTF-8');
-	}
-
-
-	/**
-	 * Sanitizes contact header by quoting display names that contain commas but are not already quoted.
-	 * e.g. "Slovenska sporitelna, a.s. <notifikacie@slspsk>" => ""Slovenska sporitelna, a.s. " <notifikacie@slspsk>"
-	 *
-	 * @internal for testing
-	 */
-	public function sanitizeContactHeader(string $headerValue): string
-	{
-		if (str_contains($headerValue, ',') && !str_contains($headerValue, '"') && str_contains($headerValue, '<')) {
-			$headerValue = (string) preg_replace('/^([^<]+)<([^>]+)>$/u', '"$1" <$2>', $headerValue);
-		}
-        
-		return $headerValue;
 	}
 }
