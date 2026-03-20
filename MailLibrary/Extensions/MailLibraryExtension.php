@@ -33,6 +33,7 @@ class MailLibraryExtension extends CompilerExtension
 	{
 		/** @var \stdClass $config */
 		$config = $this->getConfig();
+		/** @var object{username: string, password: string, host: string, port: int, ssl: bool} $imap */
 		$imap = $config->imap;
 		$builder = $this->getContainerBuilder();
 

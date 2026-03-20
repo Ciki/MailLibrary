@@ -12,6 +12,24 @@ use greeny\MailLibrary\Attachment;
 use greeny\MailLibrary\Drivers\ImapDriver;
 use greeny\MailLibrary\Mailbox;
 
+/**
+ * @phpstan-type ImapPart \stdClass&object{
+ *     type: int,
+ *     encoding?: int,
+ *     subtype?: string,
+ *     ifsubtype?: bool,
+ *     ifparameters?: bool,
+ *     parameters?: array<int, object{attribute: string, value: string}>,
+ *     ifdparameters?: bool,
+ *     dparameters?: array<int, object{attribute: string, value: string}>,
+ *     parts?: array<int, object>,
+ *     disposition?: string,
+ *     ifdisposition?: bool,
+ *     id?: string,
+ *     bytes?: int,
+ *     lines?: int
+ * }
+ */
 class ImapStructure implements IStructure
 {
 	public const int TYPE_TEXT = 0;
@@ -74,7 +92,7 @@ class ImapStructure implements IStructure
 
 
 	/**
-	 * @param \stdClass $structure
+	 * @param ImapPart $structure
 	 */
 	public function __construct(
 		protected ImapDriver $driver,
@@ -82,11 +100,13 @@ class ImapStructure implements IStructure
 		protected int $id,
 		protected Mailbox $mailbox
 	) {
-		if (!isset($structure->parts)) {
+		/** @var ImapPart $structure */
+		if (empty($structure->parts)) {
 			$this->addStructurePart($structure, '0');
 		} else {
-			foreach ((array) $structure->parts as $this->id => $part) {
-				$this->addStructurePart($part, (string) ($this->id + 1));
+			foreach ($structure->parts as $index => $part) {
+				/** @var ImapPart $part */
+				$this->addStructurePart($part, (string) ($index + 1));
 			}
 		}
 	}
@@ -104,7 +124,7 @@ class ImapStructure implements IStructure
 			$this->driver->switchMailbox($this->mailbox->getName());
 			return $this->htmlBody = $this->driver->getBody($this->id, $this->htmlBodyIds);
 		}
-		
+
 		return $this->htmlBody;
 	}
 
@@ -115,7 +135,7 @@ class ImapStructure implements IStructure
 			$this->driver->switchMailbox($this->mailbox->getName());
 			return $this->textBody = $this->driver->getBody($this->id, $this->textBodyIds);
 		}
-		
+
 		return $this->textBody;
 	}
 
@@ -138,24 +158,25 @@ class ImapStructure implements IStructure
 
 
 	/**
-	 * @param \stdClass $structure
+	 * @param ImapPart $structure
 	 */
 	protected function addStructurePart(object $structure, string $partId): void
 	{
-		$type = (int) $structure->type;
-		$encoding = (int) ($structure->encoding ?? self::ENCODING_OTHER);
-		$subtype = !empty($structure->ifsubtype) ? (string) $structure->subtype : 'PLAIN';
+		$type = $structure->type;
+		$encoding = $structure->encoding ?? self::ENCODING_OTHER;
+		$subtype = $structure->subtype ?? 'PLAIN';
+		$subtype = !empty($structure->ifsubtype) ? $subtype : 'PLAIN';
 
 		$parameters = [];
 		if (!empty($structure->ifparameters) && isset($structure->parameters)) {
-			foreach ((array) $structure->parameters as $parameter) {
-				$parameters[strtolower((string) $parameter->attribute)] = (string) $parameter->value;
+			foreach ($structure->parameters as $parameter) {
+				$parameters[strtolower($parameter->attribute ?? '')] = $parameter->value ?? '';
 			}
 		}
 
 		if (!empty($structure->ifdparameters) && isset($structure->dparameters)) {
-			foreach ((array) $structure->dparameters as $parameter) {
-				$parameters[strtolower((string) $parameter->attribute)] = (string) $parameter->value;
+			foreach ($structure->dparameters as $parameter) {
+				$parameters[strtolower($parameter->attribute ?? '')] = $parameter->value ?? '';
 			}
 		}
 
@@ -181,8 +202,9 @@ class ImapStructure implements IStructure
 		}
 
 		if (isset($structure->parts)) {
-			foreach ((array) $structure->parts as $id => $part) {
-				$this->addStructurePart($part, $partId . '.' . ($id + 1));
+			foreach ($structure->parts as $id => $part) {
+				/** @var ImapPart $part */
+				$this->addStructurePart($part, ($partId === '' ? '' : $partId . '.') . ($id + 1));
 			}
 		}
 	}

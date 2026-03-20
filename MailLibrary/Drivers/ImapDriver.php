@@ -19,6 +19,9 @@ use greeny\MailLibrary\Structures\IStructure;
 use IMAP\Connection;
 use Nette\Utils\Strings;
 
+/**
+ * @phpstan-import-type ImapPart from ImapStructure
+ */
 class ImapDriver implements IDriver
 {
 	protected Connection|false $resource = false;
@@ -125,7 +128,8 @@ class ImapDriver implements IDriver
 		}
 
 		foreach ($foo as $mailbox) {
-			$mailboxes[] = mb_convert_encoding(str_replace($this->server, '', $mailbox), 'UTF8', 'UTF7-IMAP');
+			assert(is_string($mailbox));
+			$mailboxes[] = mb_convert_encoding(str_replace($this->server, '', $mailbox), 'UTF-8', 'UTF7-IMAP');
 		}
 
 		return $mailboxes;
@@ -190,8 +194,6 @@ class ImapDriver implements IDriver
 
 
 	/**
-	 * Finds UIDs of mails by filter
-	 *
 	 * @param array<int, array{key: string, value: string|int|DateTimeInterface|bool|null}> $filters
 	 * @throws DriverException
 	 * @return int[] of UIDs
@@ -211,6 +213,7 @@ class ImapDriver implements IDriver
 			throw new DriverException('Cannot get mails: ' . imap_last_error());
 		}
 
+		/** @var int[] $ids */
 		return $limit === 0 ? $ids : array_slice($ids, $offset, $limit);
 	}
 
@@ -282,36 +285,43 @@ class ImapDriver implements IDriver
 			}
 
 			if (strtolower($key) === 'subject') {
+				/** @var array<int, object{text?: string, charset?: string}> $decoded */
 				$decoded = (array) imap_mime_header_decode($header);
 				$text = '';
 				foreach ($decoded as $part) {
-					if ($part->charset !== 'UTF-8' && $part->charset !== 'default') {
+					$partCharset = $part->charset ?? 'default';
+					$partText = $part->text ?? '';
+					if ($partCharset !== 'UTF-8' && $partCharset !== 'default') {
 						try {
 							// throws ValueError since php8.0.0 for non-supported charsets, eg. `windows-1250`
 							// https://www.php.net/manual/de/mbstring.supported-encodings.php
-							$text .= @mb_convert_encoding($part->text, 'UTF-8', $part->charset);
+							$text .= (string) @mb_convert_encoding($partText, 'UTF-8', $partCharset);
 						} catch (\ValueError) {
-							$text .= iconv((string) $part->charset, 'UTF-8', (string) $part->text);
+							$text .= (string) iconv($partCharset, 'UTF-8', $partText);
 						}
 					} else {
-						$text .= $part->text;
+						$text .= $partText;
 					}
 				}
 
 				$headers[$key] = trim($text);
 			} elseif (in_array(strtolower($key), self::$contactHeaders, true)) {
+				/** @var array<int, object{text?: string, charset?: string}> $decoded */
 				$decoded = (array) imap_mime_header_decode(trim($header));
 				$decodedHeaderValue = '';
 				foreach ($decoded as $part) {
-					if ($part->charset === 'default') {
-						$decodedHeaderValue .= $part->text;
+					$partCharset = $part->charset ?? 'default';
+					$partText = $part->text ?? '';
+					if ($partCharset === 'default') {
+						$decodedHeaderValue .= $partText;
 					} else {
-						$decodedHeaderValue .= mb_convert_encoding((string) $part->text, 'UTF-8', (string) $part->charset);
+						$decodedHeaderValue .= (string) mb_convert_encoding($partText, 'UTF-8', $partCharset);
 					}
 				}
 
 				$headerValue = $this->sanitizeContactHeader($decodedHeaderValue);
-				$contacts = imap_rfc822_parse_adrlist($headerValue, 'UNKNOWN_HOST');
+				/** @var array<int, object{mailbox?: string, host?: string, personal?: string, adl?: string}> $contacts */
+				$contacts = (array) imap_rfc822_parse_adrlist($headerValue, 'UNKNOWN_HOST');
 				$list = new ContactList();
 				foreach ($contacts as $contact) {
 					$list->addContact(
@@ -344,6 +354,7 @@ class ImapDriver implements IDriver
 			throw new DriverException("Cannot get structure for mail '{$mailId}': " . imap_last_error());
 		}
 
+		/** @var ImapPart $structure */
 		return new ImapStructure($this, $structure, $mailId, $mailbox);
 	}
 

@@ -9,6 +9,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/exceptions.php';
 
 spl_autoload_register(function (string $type): void {
+	/** @var array<string, string> $paths */
 	static $paths = [
 		'greeny\maillibrary\connection' => 'Connection.php',
 		'greeny\maillibrary\mailbox' => 'Mailbox.php',
