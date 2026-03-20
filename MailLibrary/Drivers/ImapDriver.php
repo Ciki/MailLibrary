@@ -569,17 +569,6 @@ class ImapDriver implements IDriver
 
 
 	/**
-	 * Builds list from ids array
-	 * @param int[] $ids
-	 */
-	protected function buildIdList(array $ids): string
-	{
-		sort($ids);
-		return implode(',', $ids);
-	}
-
-
-	/**
 	 * Converts mailbox name encoding as defined in IMAP RFC 2060.
 	 */
 	protected function encodeMailboxName(string $name): string
