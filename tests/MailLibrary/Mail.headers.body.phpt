@@ -6,7 +6,7 @@ use Tester\Assert;
 
 $mail = $connection->getMailbox('x')->getMails()->fetchAll()[1];
 
-Assert::equal(array('name' => md5(1), 'id' => 1), $mail->getHeaders());
+Assert::equal(array('name' => md5(1), 'id' => '1', 'content-type' => 'text/plain', 'x-mailer' => 'TestMailer', 'x-custom-header' => 'custom-value'), $mail->getHeaders());
 Assert::equal(md5(1), $mail->name);
 Assert::equal(str_repeat('body', 10), $mail->getBody());
 Assert::equal(str_repeat('textbody', 10), $mail->getTextBody());

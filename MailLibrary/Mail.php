@@ -75,12 +75,7 @@ class Mail
 	 */
 	public function __isset(string $name): bool
 	{
-		if ($this->headers === null) {
-			$this->initializeHeaders();
-		}
-		
-		$key = $this->normalizeHeaderName($this->lowerCamelCaseToHeaderName($name));
-		return isset($this->headers[$key]);
+		return $this->getHeader($name) !== null;
 	}
 
 
@@ -89,9 +84,7 @@ class Mail
 	 */
 	public function __get(string $name): mixed
 	{
-		return $this->getHeader(
-			$this->normalizeHeaderName($this->lowerCamelCaseToHeaderName($name))
-		);
+		return $this->getHeader($name);
 	}
 
 
@@ -116,7 +109,6 @@ class Mail
 			$this->initializeHeaders();
 		}
 		
-		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after initializeHeaders().
 		assert(is_array($this->headers));
 		return $this->headers;
 	}
@@ -128,7 +120,7 @@ class Mail
 			$this->initializeHeaders();
 		}
 		
-		$index = $this->normalizeHeaderName($name);
+		$index = $this->normalizeHeaderName($this->lowerCamelCaseToHeaderName($name));
 		return $this->headers[$index] ?? null;
 	}
 
@@ -178,7 +170,6 @@ class Mail
 			$this->initializeStructure();
 		}
 		
-		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after initializeStructure().
 		assert($this->structure instanceof IStructure);
 		return $this->structure->getBody();
 	}
@@ -190,7 +181,6 @@ class Mail
 			$this->initializeStructure();
 		}
 		
-		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after initializeStructure().
 		assert($this->structure instanceof IStructure);
 		return $this->structure->getHtmlBody();
 	}
@@ -202,7 +192,6 @@ class Mail
 			$this->initializeStructure();
 		}
 		
-		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after initializeStructure().
 		assert($this->structure instanceof IStructure);
 		return $this->structure->getTextBody();
 	}
@@ -217,7 +206,6 @@ class Mail
 			$this->initializeStructure();
 		}
 		
-		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after initializeStructure().
 		assert($this->structure instanceof IStructure);
 		return $this->structure->getAttachments();
 	}
@@ -232,7 +220,6 @@ class Mail
 			$this->initializeFlags();
 		}
 		
-		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after initializeFlags().
 		assert(is_array($this->flags));
 		return $this->flags;
 	}
@@ -321,20 +308,16 @@ class Mail
 
 
 	/**
-	 * Converts camel cased name to normalized header name (xReceivedFrom => x-recieved-from)
+	 * Converts camel cased name to normalized header name (xReceivedFrom => x-received-from)
 	 *
 	 * @return string name with dashes
 	 */
 	protected function lowerCamelCaseToHeaderName(string $camelCasedName): string
 	{
-		// todo: test this
-		// todo: use something like this instead http://stackoverflow.com/a/1993772
-		$dashedName = lcfirst((string) preg_replace_callback(
-			'~-.~',
-			fn (array $matches): string => ucfirst(substr((string) $matches[0], 1)),
-			$camelCasedName
-		));
+		if (str_contains($camelCasedName, '-')) {
+			return $camelCasedName;
+		}
 
-		return $dashedName;
+		return (string) preg_replace('/[A-Z]/', '-$0', $camelCasedName);
 	}
 }

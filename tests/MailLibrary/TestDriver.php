@@ -5,9 +5,8 @@ declare(strict_types=1);
 /**
  * @author Tomáš Blatný
  */
-use DateTime;
-use DateTimeInterface;
 use greeny\MailLibrary\Attachment;
+use greeny\MailLibrary\ContactList;
 use greeny\MailLibrary\DriverException;
 use greeny\MailLibrary\Drivers\IDriver;
 use greeny\MailLibrary\Mail;
@@ -125,15 +124,15 @@ class TestDriver implements IDriver
 		}
 
 		$filtered = self::$filterTable[$key];
-		if (str_contains((string) $filtered, '%s')) {
+		if (str_contains($filtered, '%s')) {
 			if (!is_string($value)) {
 				throw new DriverException("Invalid value type for filter '{$key}', expected string, got " . gettype($value) . '.');
 			}
-		} elseif (str_contains((string) $filtered, '%d')) {
-			if (!($value instanceof DateTime) && !is_int($value) && !(is_string($value) && strtotime($value))) {
+		} elseif (str_contains($filtered, '%d')) {
+			if (!($value instanceof DateTimeInterface) && !is_int($value) && !(is_string($value) && strtotime($value))) {
 				throw new DriverException("Invalid value type for filter '{$key}', expected DateTime or timestamp, or textual representation of date, got " . gettype($value) . '.');
 			}
-		} elseif (str_contains((string) $filtered, '%b')) {
+		} elseif (str_contains($filtered, '%b')) {
 			if (!is_bool($value)) {
 				throw new DriverException("Invalid value type for filter '{$key}', expected bool, got " . gettype($value) . '.');
 			}
@@ -144,13 +143,16 @@ class TestDriver implements IDriver
 
 
 	/**
-	 * @return array<string, string|\greeny\MailLibrary\ContactList>
+	 * @return array<string, string|ContactList>
 	 */
 	public function getHeaders(int $mailId): array
 	{
 		return [
 			'name' => md5((string) $mailId),
 			'id' => (string) $mailId,
+			'content-type' => 'text/plain',
+			'x-mailer' => 'TestMailer',
+			'x-custom-header' => 'custom-value',
 		];
 	}
 

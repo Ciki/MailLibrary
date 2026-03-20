@@ -9,8 +9,11 @@
         }
     ],
     "autoload": {
+        "psr-4": {
+            "greeny\\MailLibrary\\": "MailLibrary/"
+        },
         "files": [
-            "MailLibrary/loader.php"
+            "MailLibrary/exceptions.php"
         ]
     },
     "require": {
@@ -26,7 +29,7 @@
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-nette": "2.0",
         "tomasvotruba/type-coverage": "2.0.0",
-        "rector/rector": "dev-main",
+        "rector/rector": "^2.0",
         "nette/di": "^3.2"
     },
     "suggest": {

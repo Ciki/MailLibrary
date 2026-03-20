@@ -43,6 +43,7 @@ class ImapStructure implements IStructure
 	public const int TYPE_OTHER = 8;
 	public const int TYPE_UNKNOWN = 9;
 
+	// encoding
 	public const int ENCODING_7BIT = 0;
 	public const int ENCODING_8BIT = 1;
 	public const int ENCODING_BINARY = 2;
@@ -86,7 +87,7 @@ class ImapStructure implements IStructure
 	protected ?string $textBody = null;
 
 	/**
-	 * @var ?Attachment[]
+	 * @var Attachment[]|null
 	 */
 	protected ?array $attachments = null;
 
@@ -165,7 +166,7 @@ class ImapStructure implements IStructure
 		$type = $structure->type;
 		$encoding = $structure->encoding ?? self::ENCODING_OTHER;
 		$subtype = $structure->subtype ?? 'PLAIN';
-		$subtype = !empty($structure->ifsubtype) ? $subtype : 'PLAIN';
+		$subtype = empty($structure->ifsubtype) ? 'PLAIN' : $subtype;
 
 		$parameters = [];
 		if (!empty($structure->ifparameters) && isset($structure->parameters)) {

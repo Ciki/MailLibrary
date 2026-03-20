@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace greeny\MailLibrary\Drivers;
 
-use DateTime;
 use DateTimeInterface;
 use greeny\MailLibrary\ContactList;
 use greeny\MailLibrary\DriverException;
@@ -230,15 +229,15 @@ class ImapDriver implements IDriver
 		}
 
 		$filtered = self::$filterTable[$key];
-		if (str_contains((string) $filtered, '%s')) {
+		if (str_contains($filtered, '%s')) {
 			if (!is_string($value)) {
 				throw new DriverException("Invalid value type for filter '{$key}', expected string, got " . gettype($value) . '.');
 			}
-		} elseif (str_contains((string) $filtered, '%d')) {
+		} elseif (str_contains($filtered, '%d')) {
 			if (!($value instanceof DateTimeInterface) && !is_int($value) && (!is_string($value) || strtotime($value) === false)) {
 				throw new DriverException("Invalid value type for filter '{$key}', expected DateTime or timestamp, or textual representation of date, got " . gettype($value) . '.');
 			}
-		} elseif (str_contains((string) $filtered, '%b')) {
+		} elseif (str_contains($filtered, '%b')) {
 			if (!is_bool($value)) {
 				throw new DriverException("Invalid value type for filter '{$key}', expected bool, got " . gettype($value) . '.');
 			}
@@ -315,13 +314,17 @@ class ImapDriver implements IDriver
 					if ($partCharset === 'default') {
 						$decodedHeaderValue .= $partText;
 					} else {
-						$decodedHeaderValue .= (string) mb_convert_encoding($partText, 'UTF-8', $partCharset);
+						try {
+							$decodedHeaderValue .= (string) @mb_convert_encoding($partText, 'UTF-8', $partCharset);
+						} catch (\ValueError) {
+							$decodedHeaderValue .= (string) iconv($partCharset, 'UTF-8', $partText);
+						}
 					}
 				}
 
 				$headerValue = $this->sanitizeContactHeader($decodedHeaderValue);
 				/** @var array<int, object{mailbox?: string, host?: string, personal?: string, adl?: string}> $contacts */
-				$contacts = (array) imap_rfc822_parse_adrlist($headerValue, 'UNKNOWN_HOST');
+				$contacts = imap_rfc822_parse_adrlist($headerValue, 'UNKNOWN_HOST');
 				$list = new ContactList();
 				foreach ($contacts as $contact) {
 					$list->addContact(
@@ -374,11 +377,11 @@ class ImapDriver implements IDriver
 				$lastError = error_get_last();
 				throw new DriverException('Cannot read given message part - ' . ($lastError['message'] ?? 'unknown error'));
 			}
-
-			$dataMessage = (string) $dataMessage;
+			
 			$encoding = (int) $part['encoding'];
 			if ($encoding === ImapStructure::ENCODING_BASE64) {
-				$dataMessage = base64_decode($dataMessage, true);
+				// strict=false: real-world emails often contain slightly malformed base64
+				$dataMessage = base64_decode($dataMessage, false);
 			} elseif ($encoding === ImapStructure::ENCODING_QUOTED_PRINTABLE) {
 				$dataMessage = quoted_printable_decode($dataMessage);
 			}

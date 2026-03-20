@@ -140,7 +140,6 @@ class Selection implements ArrayAccess, Countable, Iterator
 			$this->fetchMails();
 		}
 
-		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after fetchMails().
 		assert(is_array($this->mails));
 		return count($this->mails);
 	}
@@ -157,7 +156,6 @@ class Selection implements ArrayAccess, Countable, Iterator
 			$this->fetchMails();
 		}
 
-		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after fetchMails().
 		assert(is_array($this->mails));
 		return $this->mails;
 	}
@@ -169,7 +167,6 @@ class Selection implements ArrayAccess, Countable, Iterator
 			$this->fetchMails();
 		}
 
-		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after fetchMails().
 		assert(is_array($this->mails));
 		return isset($this->mails[$offset]);
 	}
@@ -184,7 +181,6 @@ class Selection implements ArrayAccess, Countable, Iterator
 			$this->fetchMails();
 		}
 
-		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after fetchMails().
 		assert(is_array($this->mails));
 		if (isset($this->mails[$offset])) {
 			return $this->mails[$offset];
@@ -254,7 +250,6 @@ class Selection implements ArrayAccess, Countable, Iterator
 			$this->fetchMails();
 		}
 
-		// Assert to satisfy static analysis: property is lazy-loaded but should never be null after fetchMails().
 		assert(is_array($this->mails));
 		$this->iterator = 0;
 	}
