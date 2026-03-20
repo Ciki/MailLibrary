@@ -143,7 +143,7 @@ class TestDriver implements IDriver
 
 
 	/**
-	 * @return array<string, string|ContactList>
+	 * @return array<string,string|ContactList>
 	 */
 	public function getHeaders(int $mailId): array
 	{

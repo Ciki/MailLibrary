@@ -264,7 +264,7 @@ class ImapDriver implements IDriver
 
 		// normalize headers
 		foreach ($lines as $line) {
-			$firstCharacter = mb_substr($line, 0, 1, 'UTF-8'); // todo: correct assumption that string must be UTF-8 encoded?
+			$firstCharacter = mb_substr($line, 0, 1, 'UTF-8'); // string is already UTF-8 encoded after Strings::fixEncoding() call
 			if ($lastHeader !== null && preg_match('/[\pZ\pC]/u', $firstCharacter) === 1) { // search for UTF-8 whitespaces
 				$headers[$lastHeader] .= ' ' . Strings::trim($line);
 			} else {
