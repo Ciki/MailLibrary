@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace greeny\MailLibrary\Extensions;
 
+use greeny\MailLibrary\Connection;
+use greeny\MailLibrary\Drivers\ImapDriver;
 use Nette\DI\CompilerExtension;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
@@ -38,10 +40,10 @@ class MailLibraryExtension extends CompilerExtension
 		$builder = $this->getContainerBuilder();
 
 		$builder->addDefinition($this->prefix('connection'))
-			->setClass('greeny\\MailLibrary\\Connection');
+			->setType(Connection::class);
 
 		$builder->addDefinition($this->prefix('imap'))
-			->setFactory('greeny\\MailLibrary\\Drivers\\ImapDriver', [
+			->setFactory(ImapDriver::class, [
 				$imap->username,
 				$imap->password,
 				$imap->host,
