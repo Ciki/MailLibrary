@@ -164,7 +164,7 @@ class TestDriver implements IDriver
 
 
 	/**
-	 * @param array<int, array<string, string|int>> $data
+	 * @param array<int, array{id: string, encoding: int, charset?: string}> $data
 	 */
 	public function getBody(int $mailId, array $data): string
 	{

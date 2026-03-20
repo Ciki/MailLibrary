@@ -365,7 +365,7 @@ class ImapDriver implements IDriver
 	/**
 	 * Gets part of body
 	 *
-	 * @param array<int, array<string, string|int>> $data requires id and encoding keys
+	 * @param array<int, array{id: string, encoding: int, charset?: string}> $data
 	 * @throws DriverException
 	 */
 	public function getBody(int $mailId, array $data): string
@@ -378,13 +378,11 @@ class ImapDriver implements IDriver
 				throw new DriverException('Cannot read given message part - ' . ($lastError['message'] ?? 'unknown error'));
 			}
 			
-			$encoding = (int) $part['encoding'];
-			if ($encoding === ImapStructure::ENCODING_BASE64) {
-				// strict=false: real-world emails often contain slightly malformed base64
-				$dataMessage = base64_decode($dataMessage, false);
-			} elseif ($encoding === ImapStructure::ENCODING_QUOTED_PRINTABLE) {
-				$dataMessage = quoted_printable_decode($dataMessage);
-			}
+			$dataMessage = $this->decodeBodyPart(
+				$dataMessage,
+				(int) $part['encoding'],
+				(string) ($part['charset'] ?? 'UTF-8'),
+			);
 
 			$body[] = $dataMessage;
 		}
@@ -501,6 +499,35 @@ class ImapDriver implements IDriver
 		}
 
 		return $headerValue;
+	}
+
+
+	/**
+	 * Decodes body part data: applies transfer encoding (base64/QP) and converts charset to UTF-8.
+	 *
+	 * @internal for testing
+	 */
+	public function decodeBodyPart(string $data, int $encoding, string $charset = 'UTF-8'): string
+	{
+		if ($encoding === ImapStructure::ENCODING_BASE64) {
+			// strict=false: real-world emails often contain slightly malformed base64
+			$data = base64_decode($data, false);
+		} elseif ($encoding === ImapStructure::ENCODING_QUOTED_PRINTABLE) {
+			$data = quoted_printable_decode($data);
+		}
+
+		if ($charset !== '' && strtoupper($charset) !== 'UTF-8' && strtoupper($charset) !== 'US-ASCII') {
+			try {
+				$data = (string) @mb_convert_encoding($data, 'UTF-8', $charset);
+			} catch (\ValueError) {
+				$converted = iconv($charset, 'UTF-8//IGNORE', $data);
+				if ($converted !== false) {
+					$data = $converted;
+				}
+			}
+		}
+
+		return $data;
 	}
 
 

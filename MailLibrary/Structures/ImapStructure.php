@@ -68,12 +68,12 @@ class ImapStructure implements IStructure
 	];
 
 	/**
-	 * @var array<int, array{id: string, encoding: int}>
+	 * @var array<int, array{id: string, encoding: int, charset: string}>
 	 */
 	protected array $htmlBodyIds = [];
 
 	/**
-	 * @var array<int, array{id: string, encoding: int}>
+	 * @var array<int, array{id: string, encoding: int, charset: string}>
 	 */
 	protected array $textBodyIds = [];
 
@@ -189,17 +189,26 @@ class ImapStructure implements IStructure
 				'type' => self::$typeTable[$type] . '/' . $subtype,
 			];
 		} elseif ($type === self::TYPE_TEXT) {
+			$charset = $parameters['charset'] ?? 'UTF-8';
 			if ($subtype === 'HTML') {
 				$this->htmlBodyIds[] = [
 					'id' => $partId,
 					'encoding' => $encoding,
+					'charset' => $charset,
 				];
 			} elseif ($subtype === 'PLAIN') {
 				$this->textBodyIds[] = [
 					'id' => $partId,
 					'encoding' => $encoding,
+					'charset' => $charset,
 				];
 			}
+		} elseif ($type === self::TYPE_MESSAGE && !isset($parameters['filename'])) {
+			$this->textBodyIds[] = [
+				'id' => $partId,
+				'encoding' => $encoding,
+				'charset' => 'UTF-8',
+			];
 		}
 
 		if (isset($structure->parts)) {
